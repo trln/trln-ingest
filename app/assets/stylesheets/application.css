@@ -1,0 +1,55 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
+ * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ *= require_tree .
+ *= require_self
+ */
+
+.ingest, .button {
+	padding: 1rem;
+}
+
+#main {
+	width: 80%;
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+.button {
+	border-radius: .3rem;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.duke {
+	background-color: #0A2B66;
+	color: #fff;
+}
+
+.nccu {
+	background-color: #8c2332;
+	color: #fff;
+}
+
+.unc {
+	background-color: #56A0D3;
+	color: #000;
+}
+
+.ncsu {
+	background-color: #CC0000;
+	color: #fff;
+}
+
+header {
+    padding: .5rem;
+}

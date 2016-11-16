@@ -1,0 +1,9 @@
+<% content_for(:title, "Ingest Form: #{@owner }") %>
+<div class="ingest <%= @owner.downcase %>">
+<h1><%= yield(:title) %></h1>
+<%= form_for( :upload, { :owner => @owner.downcase, :html => { :multipart => true} }) do |f| %>
+	<%= f.file_field :package %>
+	<br />
+	<%= f.submit %>
+<% end %>
+</div>

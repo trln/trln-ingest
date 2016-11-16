@@ -1,0 +1,28 @@
+<p id="notice"><%= notice %></p>
+<header class="<%= @transaction.owner %>">
+  <h1><%= @transaction.owner %></h1>
+  <h3>Tag: <%= @transaction.tag %></h3>
+</header>
+
+<p>
+  <strong>Initiated By:</strong>
+  <%= @transaction.user || "unknown" %> at <%= @transaction.created_at %>
+</p>
+
+<p>
+  <strong>Status:</strong>
+  <%= @transaction.status || "(not determined)" %>
+</p>
+
+<p>
+  <strong>Files:</strong>
+   <ul>
+     <% @transaction.files.each do |f| %>
+      <li><%= File.basename(f) %> : <%= number_to_human_size File.size(f) %></li>
+     <% end %>
+   </ul>
+</p>
+<div class="note">
+  Imagine there being something here about being able to view rejected documents and the reason for rejecting them.
+</div>
+  <%= link_to 'Back', transactions_path %>

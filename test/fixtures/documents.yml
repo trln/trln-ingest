@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  local_id: MyString
+  owner: MyString
+  collection: MyString
+  content: 
+  transaction_id: 
+  updated_by: MyString
+
+two:
+  local_id: MyString
+  owner: MyString
+  collection: MyString
+  content: 
+  transaction_id: 
+  updated_by: MyString

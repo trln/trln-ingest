@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  owner: MyString
+  user: MyString
+  status: MyString
+  files: MyString
+
+two:
+  owner: MyString
+  user: MyString
+  status: MyString
+  files: MyString
