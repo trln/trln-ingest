@@ -42,7 +42,7 @@ module Spofford
 
         end
       ensure
-        #tempzip.close and tempzip.unlink unless tempzip.nil?
+        tempzip.close and tempzip.unlink unless tempzip.nil?
       end
     end
   end
