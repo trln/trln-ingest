@@ -77,6 +77,7 @@ Vagrant.configure(2) do |config|
 
   sqlTemplate = ERB.new <<-TMPL
 CREATE USER shrindex with PASSWORD '<%= password %>';
+ALTER USER shrindex CREATEDB;
 CREATE DATABASE shrindex WITH OWNER shrindex;
 TMPL
     
@@ -139,11 +140,11 @@ TMPL
      cd /tmp
      sudo -u postgres /usr/bin/psql < /tmp/postgres-setup.sql
      export RCFILE=/home/vagrant/.bashrc
-     if [ ! $(grep chruby $RCFILE) ]; then
+     if [ ! "$(grep chruby $RCFILE)" ]; then
         printf "\n\n# Added by provisioner\n" >> $RCFILE
         echo "chruby ruby" >> $RCFILE
      fi
-     if [ ! $(grep pgsql-9.5 $RCFILE) ]; then
+     if [ ! "$(grep pgsql-9.5 $RCFILE)" ]; then
         printf "\n\n# Added by provisioner\n" >> $RCFILE
         echo "export PATH=\"\${PATH}\":/usr/pgsql-9.5/bin" >> $RCFILE
      fi
