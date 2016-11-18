@@ -119,3 +119,9 @@ Currently, we are *not* indexing any of the fields, but ISBN would be a natural 
 ### Testing -- TODO 
 
 Nothing's really been set up for testing yet.
+
+### Sample Package Ingest Command
+```
+curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3000/ingest/unc
+```
+Can change "application/json" to "application/zip" for zip file
