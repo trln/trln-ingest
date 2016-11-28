@@ -8,6 +8,7 @@ config/local_env.yml
 
 # Ignore bundler config.
 /.bundle
+/.vagrant
 
 
 # Ignore the default SQLite database.

@@ -95,61 +95,80 @@ TMPL
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-     echo "#{dbpw}" > /home/vagrant/.dbpassword
-     chown vagrant.vagrant /home/vagrant/.dbpassword
-     chmod 0600 /home/vagrant/.dbpassword
+     RUBYVER=2.3.3
+     HOMEDIR=/home/vagrant
+     echo "#{dbpw}" > "${HOMEDIR}/.dbpassword"
+     chown vagrant.vagrant ${HOMEDIR}/.dbpassword
+     chmod 0600 ${HOMEDIR}/.dbpassword
      yum update -y
 
      # enable EPEL repository (packages)
      # wget and C++ compilers to compile ruby and native gems
-     # redis for sidekiq
-     yum install -y epel-release git wget gcc-c++ redis
+     # after 'automake', the packages are those that *would be* installed
+     # by ruby-install; they are required for our precompiled ruby to 
+     # work
+     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel 
 
+     # we can only install redis *after* the epel-release repository has been installed
+     # redis is used by sidekiq
+     yum install -y redis
+
+     # make sure redis is running by default
      systemctl enable redis.service
      systemctl start redis.service
 
-     # the RPMS in this directory should be placed
-     # in the rpms/directory via init.sh
-     echo "Installing RPMS"
-     pushd ~vagrant/synced/rpms
-     rpm -Uvh *.rpm
-     if [ -e scripts/chruby.sh ]; then
-        install -o root -g root -m 0755 scripts/chruby.sh /etc/profile.d/chruby.sh
-     fi
-     popd
-     if [ -d /opt/rubies ]; then
-        echo "ruby already present"
-     else
-        echo "Installing ruby (MRI), this will take a while"
-        echo "If this errors out, check /tmp/ruby-install.log on the VM"
-        ruby-install ruby > /tmp/ruby-install.log
-        chruby ruby
-        gem install bundler
+     if [ ! -d "${HOMEDIR}/rpms" ]; then
+        echo "Fetching compiled packages from github"
+        sudo -u vagrant git clone https://github.com/trln/local-rpms "${HOMEDIR}/rpms"
+        echo "Installing RPMS"
+        pushd "${HOMEDIR}/rpms"
+        rpm -Uvh *.rpm
+        if [ -e scripts/chruby.sh ]; then
+            install -o root -g root -m 0755 scripts/chruby.sh /etc/profile.d/chruby.sh
+        fi
+        RUBIESDIR="${HOMEDIR}/.rubies"
+        # now unpack the ruby tarball; this tarball
+        # was created by compiling ruby on an indentical VM
+        # with the ruby-install command, so it should be 
+        # identical to what we'd get if we tried that on this machine
+        [[ ! -d "${RUBIESDIR}" ]] && sudo -u vagrant mkdir -m 0755 "${RUBIESDIR}"
+        if [ ! -d "${RUBIESDIR}/ruby-${RUBYVER}" ]; then
+            cd ${RUBIESDIR}
+            sudo -u vagrant tar xzf ${HOMEDIR}/rpms/ruby-${RUBYVER}-compiled.tar.gz
+        fi
+        popd
      fi
 
      # the next bit adds the Postgresql yum repository
      # which gives us access to more recent versions of postgres
      # then enables it as a service and starts it
 
+     # URLs will need to be updated manually when there's a new version
+     # paths may (for point release upgrades) also change, but this is
+     # not easily mechanizable in this script
      rpm -ivh https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm
      sudo yum install -y libxml2-devel libxslt-devel sqlite-devel postgresql95-server postgresql95-devel libpqxx-devel yajl vim-enhanced wget nodejs
-     /usr/pgsql-9.5/bin/postgresql95-setup initdb
-     cp /vagrant/postgres-setup.sql /tmp
-     systemctl enable postgresql-9.5.service
-     systemctl start postgresql-9.5.service
-     cd /tmp
-     sudo -u postgres /usr/bin/psql < /tmp/postgres-setup.sql
-     export RCFILE=/home/vagrant/.bashrc
+     if [ ! -f /var/lib/pgsql/9.5/data/pg_hba.conf ]; then 
+         /usr/pgsql-9.5/bin/postgresql95-setup initdb
+         cp /vagrant/postgres-setup.sql /tmp
+         sudo perl -pi.bak -e 's/(local\\s+all\\s+all\\s+)peer/$1trust/' /var/lib/pgsql/9.5/data/pg_hba.conf
+         systemctl enable postgresql-9.5.service
+         systemctl start postgresql-9.5.service
+         cd /tmp
+         sudo -u postgres /usr/bin/psql < /tmp/postgres-setup.sql
+     fi
+     export RCFILE=${HOMEDIR}/.bash_profile
      if [ ! "$(grep chruby $RCFILE)" ]; then
-        printf "\n\n# Added by provisioner\n" >> $RCFILE
-        echo "chruby ruby" >> $RCFILE
+        echo ''  >> $RCFILE
+        echo '# Added by provisioner' >> $RCFILE
+        echo 'chruby ruby' >> $RCFILE
      fi
      if [ ! "$(grep pgsql-9.5 $RCFILE)" ]; then
-        printf "\n\n# Added by provisioner\n" >> $RCFILE
-        echo "export PATH=\"\${PATH}\":/usr/pgsql-9.5/bin" >> $RCFILE
+        echo '' >> $RCFILE
+        echo '# Added by provisioner' >> $RCFILE
+        echo 'export PATH="\${PATH}":/usr/pgsql-9.5/bin' >> $RCFILE
      fi
-     printf "\nchruby ruby" >> /home/vagrant/.bash_profile
-
+     echo "Run synced/install.sh next after you log in to set up the Rails dependencies"
   SHELL
 
 end

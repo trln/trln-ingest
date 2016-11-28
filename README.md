@@ -16,33 +16,63 @@ of what you'll need installed on the target system, other than Ruby, of course.
 
 ## Getting Started
 
-I recommend vagrant if you just need to get going; it will do what it can to set up all the parts for you.  I am working on automating the postgres install, but that will take a bit of time.  It's worth looking at the steps in the `Vagrantfile` to see what packages and services you'll need. 
-If you're using Vagrant, the application directory will be mounted under `$HOME/synced/trln-ingest'
+### Vagrant
 
-```shell
-bundle install
-```
+Use `vagrant` if you just need to get going; the `Vagrantfile` in this project
+it will do what it can to set up all the parts for you.
 
-Will install all the necessary gems. The `pg` gem is used to access Postgres,
-and this can be a bit difficult to get installed.  See the included `Vagrantfile` for some hints that should help with 
-RHEL/Centos at least.
- 
-**TODO** - fully automate the database setup -- the provisioner (see
-Vagrantfile) generates a random database password, but it's turned out to be
-hard to get the database to work with a password in this context.  So, for now
-before you run any of your rake database tasks, you'll have to do a bit of work.
+Especially if you don't use vagrant, it's worth looking at the steps in the
+`Vagrantfile` to see what packages and services you'll need. 
 
-One thing you *will* need to do is edit `/var/lib/pgsql/9.5/data/pg_hba.conf`, look for the line
- 
-`# TYPE  DATABASE        USER            ADDRESS                 METHOD`
+Vagrant is a tool for managing virtual machines; it doesn't itself contain
+any 'virtualization' features, but it knows how to interact with VM providers (e.g Virtualbox, vmWare Fusion, things like that) and is intended to let you quickly set up a virtual environment.
 
-and make sure the first non-comment looks like
+Vagrant provides hooks to download 'boxes' which are images of various
+operating systems; we use a plain Centos 7 image here, then use a
+*provisioning* script (defined as part of the `Vagrantfile`) to install
+necessary software, perform updates, etc., and generally get the virtual
+machine into a 'ready-to-run' state as quickly as possible.
 
-`local   all             all                                     trust`
+To provision a VM, once you've checked out this repository, change into its
+directory.  Open a terminal and type
 
-(basically, says anybody on the same machine as the postgres server can log in without a password).
+    $ vagrant up --provider virtualbox
+    
+I'll assume throughout you're using virtualbox as the 'provider', since that's
+available for macOS, Windows, and Linux.  Other providers may work (e.g. this
+has been tested under `libvirt` but that's Linux-only).
 
-During development, this is pretty handy, as it turns out (`psql -U shrindex` to log into the database and poke around), but it's not very secure.
+Before executing `vagrant up` for the first time, if you're using Virtualbox as your VM provider,  make sure you have installed the `vagrant-vbguest` plugin: 
+
+    $ vagrant plugin install vagrant-vbguest
+
+The plugin ensures that your VM will have the guest extension options, which
+makes filesystem mirroring between the host and guest more robust.
+
+Once the vagrant VM's downloaded, updated, provisioned, and running, you can
+just type `vagrant ssh` in the working directory, and you'll be logged in as
+the `vagrant` user; if you need to do any administration on your VM, this user
+has passwordless `sudo` privileges.
+
+`vagrant ssh` puts you in `/home/vagrant` on the guest VM.  The application
+directory will be mounted under `$HOME/synced`, and any changes you make in the
+guest VM will be made to the repository files.  This means you can edit the
+files through the guest or through the host, so you can use your favourite
+tools.
+
+On first boot, you should have a `ruby` and `gem` executable on your PATH.  Execute
+
+    $ synced/install.sh
+
+(or)
+
+    $ cd synced
+    $ ./install.sh
+
+And your environment should be ready to go -- all gems installed and database initialized.  Note you'll need to start sidekiq before you can start the application (see below).
+
+One gem that might give you some trouble is the `pg` gem.  Check the
+`Vagrantfile` for some more hints that can help if it doesn't 'just work'.
 
 `bundle exec rake db:reset` may come in useful during development (clears databae and recreates tables).
 
@@ -52,13 +82,11 @@ Vagrant setup forwards port 3000 to the localhost.
 
 `bundle exec passenger start` to get started.
 
-The index page shows the most recent 'transactions' (ingest package submissions).  Transaction pages have paths like `/transaction/:id`
+The index page shows the most recent 'transactions' (ingest package
+submissions).  Transaction pages have paths like `/transaction/:id`
 
-Once documents are ingested, they can be viewed at `http://localhost:3000/record/:id` where `:id` is the unique ID
-of the record, e.g. something like `NCCU1293879`.  This resulting page gives you a quick overview of the record's main
-characteristics and shows you the 'raw' Argot stored for it.
-
-`/record` by itself will show you links to a bunch of recently updated records.
+Once documents are ingested, they can be viewed at
+`http://localhost:3000/record/:id` where `:id` is the unique ID of the record, e.g. something like `NCCU1293879`.  This resulting page gives you a quick overview of the record's main characteristics and shows you the 'raw' Argot stored for it.  `/record` by itself will show you links to a bunch of recently updated records.
 
 Ingest: you can POST 'Argot flavoured concatenated JSON' to `http://localhost:3000/ingest/[institution code]` and it 
 will do some minimal pre-processing on your files, and stash them.  Before returning, it will kick off an asynchronous 
@@ -69,10 +97,14 @@ process that ingests your documents. These processes can be monitored via Sideki
 
 You can also POST a `.zip` file containing multiple JSON files.  Files matching the pattern `add*.json` will be interpreted as containing Argot records to be updated, while files named `delete*.json` will be interpreted as JSON arrays containing IDs (in the form 'NCSU234098')  to be deleted.
 
-Ingests are handled by Sidekiq, so *you will need that running* before you start your Rails process:
+See the [Spofford Client](https://github.com/trn/spofford-client`) for a tool that can handle many interactions with this service, including the assembly and ingest of ingest packages from the command line.
+
+### Sidekiq
+
+Ingests are handled by Sidekiq, so *you will need that running* before you start your Rails process.  Currently this is not set up as a system service, so you'll need to, in a separate VM session, execute the following:
 
 ```bash
-cd /path/to/spofford
+cd synced
 bundle exec sidekiq
 ```
 
