@@ -97,7 +97,7 @@ TMPL
   config.vm.provision "shell", inline: <<-SHELL
      RUBYVER=2.3.3
      HOMEDIR=/home/vagrant
-     echo "#{dbpw}" > "${HOMEDIR}/.dbpassword"
+     echo '#{dbpw}' > "${HOMEDIR}/.dbpassword"
      chown vagrant.vagrant ${HOMEDIR}/.dbpassword
      chmod 0600 ${HOMEDIR}/.dbpassword
      yum update -y
