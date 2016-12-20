@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161019190520) do
+ActiveRecord::Schema.define(version: 20161220193414) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,13 +28,15 @@ ActiveRecord::Schema.define(version: 20161019190520) do
   end
 
   create_table "transactions", force: :cascade do |t|
-    t.string  "owner"
-    t.string  "user"
-    t.string  "status"
-    t.string  "tag"
-    t.string  "stash_directory"
-    t.string  "files",           default: [],    array: true
-    t.boolean "completed",       default: false
+    t.string   "owner"
+    t.string   "user"
+    t.string   "status"
+    t.string   "tag"
+    t.string   "stash_directory"
+    t.string   "files",           default: [],                 array: true
+    t.boolean  "completed",       default: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
     t.index ["owner"], name: "index_transactions_on_owner", using: :btree
   end
 
