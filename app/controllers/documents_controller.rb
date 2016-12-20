@@ -1,4 +1,4 @@
-class DocumentController < ApplicationController
+class DocumentsController < ApplicationController
 
     protect_from_forgery except: :do_post
 

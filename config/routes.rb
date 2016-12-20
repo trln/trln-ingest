@@ -10,8 +10,8 @@ Rails.application.routes.draw do
   get   '/ingest/:owner', to: 'transactions#ingest_form' , as: 'ingest_form'
   post  '/ingest/:owner', contraints: { content_type: :multipart_form }, to: 'transactions#upload'
 
-  get   '/record', to: 'document#index'
-  get   '/record/:id' => 'document#show', :defaults => { :format => 'html'}, as: 'show_document'
+  get   '/record', to: 'documents#index'
+  get   '/record/:id' => 'documents#show', :defaults => { :format => 'html'}, as: 'show_document'
 
   mount Sidekiq::Web => '/sidekiq'
 
