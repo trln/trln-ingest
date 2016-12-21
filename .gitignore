@@ -33,3 +33,4 @@ postgres-setup.sql
 tmp/
 passenger.*.log
 passenger*.lock
+passenger*.pid
