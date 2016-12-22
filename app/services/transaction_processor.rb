@@ -43,7 +43,7 @@ class TransactionProcessor
         end
       end
     end
-    txn.update(:status => "Complete", :completed => true)
+    txn.update(:status => "Complete")
     logger.info "Saved #{count} records for transaction #{@txn}"
   end
 end

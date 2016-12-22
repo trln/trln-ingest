@@ -28,6 +28,10 @@ class TransactionsController < ApplicationController
 
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
+    if request.body.size == 0
+      logger.info "Received empty body"
+      return render(:text => "No content uploaded", :status => 400)
+    end
     @owner = params[:owner]
     Spofford::IngestHelper::accept_zip(request.raw_post, @owner) do |files|
       @transaction = Transaction.new(owner: @owner, files: files)
@@ -40,6 +44,10 @@ class TransactionsController < ApplicationController
   # POST /ingest/:owner ( application/json )
   def ingest_json
     @owner = params[:owner]
+    if request.body.size == 0
+      logger.info "Received empty body"
+      return render(:text => "No content uploaded", :status => 400)
+    end
     files = [ Spofford::IngestHelper::accept_json(request.body, @owner, operation: 'add') ]
     @transaction = Transaction.create(owner: @owner, files: files)
     @transaction.stash!
@@ -57,9 +65,6 @@ class TransactionsController < ApplicationController
   def ingest_form
     @owner = params[:owner]
   end
-
-
-
 
   # DELETE /transactions/1
   # DELETE /transactions/1.json
