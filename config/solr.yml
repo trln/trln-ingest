@@ -1,0 +1,21 @@
+common:  &common
+  url: http://localhost:8983/solr/
+  collections:
+    shared: trln-test
+    ice_tocs: icetocs-test
+
+test:
+    <<: *common
+
+development:
+    <<: *common
+    collections:
+      shared: trln-dev
+      ice_tocs: icetocs-dev
+    
+production:
+    <<: *common
+    collections:
+      shared: trln
+      ice_tocs: icetocs
+  

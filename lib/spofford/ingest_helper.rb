@@ -7,10 +7,13 @@ module Spofford
       default_collection = options['collection'] || 'general'
       operation = options['operation'] || 'add'
       parser = Spofford::JSONFilter.new
-      output_file = options['output_file'] || Tempfile.new(["#{operation}_#{owner}", ".json"])
+      output_file = options[:output_file] || Tempfile.new(["#{operation}_#{owner}", ".json"])
       Rails.logger.warn "Hey I have output file, and it's #{output_file}"
+      Rails.logger.warn "Body length = #{body.size}"
       parser.parse(body) { |rec|
-        unless rec.nil?
+        if rec.nil?
+          Rails.logger.warn("nil record")
+        else
           rec['owner'] ||= owner
           rec['collection'] ||= default_collection
           output_file.write(rec.to_json)

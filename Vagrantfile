@@ -25,6 +25,7 @@ Vagrant.configure(2) do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
+  config.vm.network "forwarded_port", guest: 8983, host: 8984
   config.vm.network "forwarded_port", guest: 3000, host: 3000
 
   # Create a private network, which allows host-only access to the machine
@@ -147,7 +148,8 @@ TMPL
      # paths may (for point release upgrades) also change, but this is
      # not easily mechanizable in this script
      rpm -ivh https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm
-     sudo yum install -y libxml2-devel libxslt-devel sqlite-devel postgresql95-server postgresql95-devel libpqxx-devel yajl vim-enhanced wget nodejs
+     sudo yum install -y libxml2-devel libxslt-devel sqlite-devel postgresql95-server postgresql95-devel libpqxx-devel yajl vim-enhanced wget nodejs \
+        java-1.8.0-openjdk-headless lsof
      if [ ! -f /var/lib/pgsql/9.5/data/pg_hba.conf ]; then 
          /usr/pgsql-9.5/bin/postgresql95-setup initdb
          cp /vagrant/postgres-setup.sql /tmp

@@ -7,7 +7,11 @@ class TransactionWorker
       txn = Transaction.find(transaction_id)
       processor = TransactionProcessor.new(txn)
       processor.logger = logger
-      processor.run
+      begin
+        processor.run
+        logger.info("Starting indexer for #{transaction_id}")
+        IndexingWorker.perform_async(transaction_id)
+      end
     end
 end
 
