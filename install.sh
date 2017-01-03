@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # should only need to run this once!
-cd ~vagrant/synced
+cd /vagrant
 gem install bundle
 gem install yajl
 bundle install
