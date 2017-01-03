@@ -40,7 +40,7 @@ Vagrant.configure(2) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/home/vagrant/synced"
+  config.vm.synced_folder ".", "/vagrant", type: 'virtualbox'
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -168,7 +168,7 @@ TMPL
         echo '# Added by provisioner' >> $RCFILE
         echo 'export PATH="\${PATH}":/usr/pgsql-9.5/bin' >> $RCFILE
      fi
-     echo "Run synced/install.sh next after you log in to set up the Rails dependencies"
+     echo "Run /vagrant/install.sh next after you log in to set up the Rails dependencies"
   SHELL
 
 end
