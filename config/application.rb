@@ -6,7 +6,7 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-Mime::Type.register "application/octet-stream", :binary
+
 
 module TrlnIngest
   class Application < Rails::Application
@@ -16,6 +16,19 @@ module TrlnIngest
     ## remnants of an attempt to disable automated parsing of JSON payloads; kept for posterity about the method should
     # we need it
     # config.middleware.insert_before(ActionDispatch::Executor, NoParse, :urls => ['/ingest/UNC', '/ingest', '/ingest/NCSU' ])
+    #
+
+# Logging configuration to send everything to STDOUT;
+# when running under Docker, this allows us to capture logs
+
+logger              = ActiveSupport::Logger.new(STDOUT)
+logger.formatter    = config.log_formatter
+config.log_tags     = [:subdomain, :uuid]
+config.logger       = ActiveSupport::TaggedLogging.new(logger)
+
+config.generators do |g|
+  g.javascript_engine :js
+end
 
     # Load environment variable from file
     # http://railsapps.github.io/rails-environment-variables.html

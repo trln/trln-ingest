@@ -15,6 +15,15 @@
 </p>
 
 <p>
+  <strong>(Re)-Index</strong>
+   <%= form_for @transaction, :url => url_for(:action => 'start_index'), :method => :post do |f| %> 
+    <%- f.submit %>
+   <% end %>
+
+</p>
+  
+
+<p>
   <strong>Files:</strong>
    <ul>
      <% @transaction.files.each do |f| %>

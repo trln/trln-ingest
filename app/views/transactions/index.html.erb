@@ -27,5 +27,10 @@
 </table>
 
 <br>
-
-<%= link_to 'Upload Ingest Package', new_transaction_path %>
+<div class="links ingest">
+ <ul>
+ <% %w[duke unc nccu ncsu].each do |owner| %>
+    <li><%= link_to "(#{owner}) Upload Ingest Package", new_transaction_path(:owner => owner) %></li>
+ <% end %>
+ </ul>
+ </div>

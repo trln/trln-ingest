@@ -16,7 +16,8 @@ class TransactionsController < ApplicationController
 
   # GET /transactions/new
   def new
-    @transaction = Transaction.new
+    owner = params[:owner] || 'ncsu'
+    @transaction = Transaction.new(owner:owner)
   end
 
   # GET /transactions/1/rerun
@@ -69,6 +70,13 @@ class TransactionsController < ApplicationController
       format.html { redirect_to transactions_url, notice: 'Transaction was successfully destroyed.' }
       format.json { head :no_content }
     end
+  end
+
+  # POST /transactions/1/index
+  def start_index
+    @transaction = Transaction.find(params[:id])
+    IndexingWorker.perform_async(@transaction.id)
+    show
   end
 
   private

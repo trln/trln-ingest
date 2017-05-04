@@ -12,6 +12,7 @@ module Spofford
       parser.parse(body) { |rec|
         unless rec.nil?
           rec['owner'] ||= owner
+          rec['institution'] ||= [ rec['owner'] ]
           rec['collection'] ||= default_collection
           output_file.write(rec.to_json)
         end
