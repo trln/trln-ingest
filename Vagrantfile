@@ -1,32 +1,29 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 #
-require 'erb'
-require 'fileutils'
+VAGRANT_CONFIG_API_VERSION = 2
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-Vagrant.configure(2) do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
-
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://atlas.hashicorp.com/search.
+Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
   config.vm.box = "centos/7"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
+  config.vm.box_check_update = false
 
   # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # within the machine from a port on the host machine. 
+  
+  # Rails
   config.vm.network "forwarded_port", guest: 3000, host: 3000
+  # Solr
+  config.vm.network "forwarded_poert", guest: 8983, host: 8983
 
+  config.vm
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   config.vm.network "private_network", ip: "192.168.33.10"
