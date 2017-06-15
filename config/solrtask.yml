@@ -1,0 +1,14 @@
+test:
+    version: 6.3.0
+    install_base: solr-install
+
+development:
+    :version: '6.3.0'
+    # this will be interpreted relative to Rails.root 
+    # unless it starts with a / 
+    :install_base: 'solr-install'
+
+production:
+    version: '5.5.2'
+    install_dir: /opt/solr/solr-5.5.2
+                

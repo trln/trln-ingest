@@ -61,16 +61,16 @@ Other vagrant commands you may find useful:
     $ vagrant status # see which VMS are running
 
 `vagrant ssh` puts you in `/home/vagrant` on the guest VM.  The application
-directory will be mounted in the guest under `$HOME/synced`, and any changes you make to the files will
+directory will be mounted in the guest under `/vagrant`, and any changes you make to the files will
 be reflected in both host and guest.
 
 On first boot, you should have a `ruby` and `gem` executable on your PATH. Execute
 
-    $ synced/install.sh
+    $ /vagrant/install.sh
 
 (or)
 
-    $ cd synced
+    $ cd /vagrant
     $ ./install.sh
 
 And your environment should be ready to go, with all gems installed and database initialized. You'll still need to start sidekiq before you can start the application (see below).
@@ -112,7 +112,7 @@ See the [Spofford Client](https://github.com/trn/spofford-client`) for a tool th
 
 Sidekiq must be running before you start your Rails process, if you want to process ingest packages.  Currently this is not set up as an automatically running system service, so you'll need to, in a separate VM session, execute the following:
 
-    $ cd synced
+    $ cd /vagrant
     $ bundle exec sidekiq
 
 If you don't, your uploads will get processed but nothing will happen with them.

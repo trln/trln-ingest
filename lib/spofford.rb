@@ -1,6 +1,7 @@
 require 'spofford/filter'
 require 'spofford/deepstruct'
 require 'spofford/ingest_helper'
+require 'spofford/record_chunker'
 
 
 module Spofford

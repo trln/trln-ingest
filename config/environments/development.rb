@@ -47,10 +47,19 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+  # 
+  config.web_console.whitelisted_ips = '10.0.2.2'
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.stash_directory = "/opt/spofford-data/uploads"
+  config.stash_directory = ENV['APP_STASH_DIRECTORY'] || "#{ENV['HOME']}/spofford-data"
+
+  if ! File.directory?(config.stash_directory) 
+    $stderr.write("Transaction storage directory #{config.stash_directory} does not exist!\n")
+  end
+  
+
+
 end

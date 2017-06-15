@@ -2,4 +2,6 @@
 
 require_relative 'config/environment'
 
-run Rails.application
+map '/spofford'  do
+	run Rails.application
+end

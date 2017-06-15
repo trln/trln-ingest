@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 #
+#
+require 'erb'
 VAGRANT_CONFIG_API_VERSION = 2
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
@@ -8,6 +10,7 @@ VAGRANT_CONFIG_API_VERSION = 2
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
+
   config.vm.box = "centos/7"
 
   # Disable automatic box update checking. If you disable this, then
@@ -21,9 +24,8 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
   # Rails
   config.vm.network "forwarded_port", guest: 3000, host: 3000
   # Solr
-  config.vm.network "forwarded_poert", guest: 8983, host: 8983
+  config.vm.network "forwarded_port", guest: 8983, host: 8983
 
-  config.vm
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   config.vm.network "private_network", ip: "192.168.33.10"
@@ -37,17 +39,18 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/home/vagrant/synced"
+  config.vm.synced_folder ".", "/vagrant" , owner: 'vagrant', group: 'vagrant', type: 'virtualbox'
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-     vb.gui = false
-  # Customize the amount of memory on the VM:
-     vb.memory = "1024"
+    vb.name = 'Spofford'
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = false
+    # Customize the amount of memory on the VM:
+    vb.memory = "2048"
   end
   #
   # View the documentation for the provider you are using for more
@@ -104,7 +107,7 @@ TMPL
      # after 'automake', the packages are those that *would be* installed
      # by ruby-install; they are required for our precompiled ruby to 
      # work
-     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel 
+     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel lsof
 
      # we can only install redis *after* the epel-release repository has been installed
      # redis is used by sidekiq
@@ -165,7 +168,7 @@ TMPL
         echo '# Added by provisioner' >> $RCFILE
         echo 'export PATH="\${PATH}":/usr/pgsql-9.5/bin' >> $RCFILE
      fi
-     echo "Run synced/install.sh next after you log in to set up the Rails dependencies"
+     echo "Run /vagrant/install.sh next after you log in to set up the Rails dependencies"
   SHELL
 
 end

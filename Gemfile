@@ -5,6 +5,9 @@ gem 'rails', '~> 5.0.2'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 # Use Puma as the app server
+#gem puma
+
+# or use passenger
 gem 'passenger', '~> 5.0.30'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
@@ -52,6 +55,8 @@ gem 'active_record_upsert', platform: :mri
 gem 'pg'
 
 gem 'argot', :git => 'https://github.com/trln/argot-ruby.git'
+
+gem 'solrtasks', :git => 'https://github.com/trln/solrtasks.git'
 
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'

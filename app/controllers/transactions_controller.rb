@@ -1,7 +1,8 @@
 require 'spofford'
 
+# Controller for managing transactions
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
+  before_action :set_transaction, only: %i[show edit update destroy]
 
   # GET /transactions
   # GET /transactions.json
@@ -11,26 +12,29 @@ class TransactionsController < ApplicationController
 
   # GET /transactions/1
   # GET /transactions/1.json
-  def show
-  end
+  def show; end
 
   # GET /transactions/new
   def new
     owner = params[:owner] || 'ncsu'
-    @transaction = Transaction.new(owner:owner)
+    @transaction = Transaction.new(owner: owner)
   end
 
-  # GET /transactions/1/rerun
+  # GET /transactions/1/edit
   def edit
-    return start_worker
+    start_worker
   end
 
-  protect_from_forgery except: [ :ingest_json, :ingest_zip ]
+  protect_from_forgery except: %i[ingest_json ngest_zip]
 
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
+    if request.body.size.zero?
+      logger.info('Received empty body')
+      return render(text: 'No content uploaded', status: 400)
+    end
     @owner = params[:owner]
-    Spofford::IngestHelper::accept_zip(request.raw_post, @owner) do |files|
+    Spofford::IngestHelper.accept_zip(request.raw_post, @owner) do |files|
       @transaction = Transaction.new(owner: @owner, files: files)
       @transaction.stash!
       @transaction.save!
@@ -41,6 +45,10 @@ class TransactionsController < ApplicationController
   # POST /ingest/:owner ( application/json )
   def ingest_json
     @owner = params[:owner]
+    if request.body.size.zero?
+      logger.info 'Received empty body'
+      return render(:text => "No content uploaded", :status => 400)
+    end
     files = [ Spofford::IngestHelper::accept_json(request.body, @owner, operation: 'add') ]
     @transaction = Transaction.create(owner: @owner, files: files)
     @transaction.stash!
@@ -58,9 +66,6 @@ class TransactionsController < ApplicationController
   def ingest_form
     @owner = params[:owner]
   end
-
-
-
 
   # DELETE /transactions/1
   # DELETE /transactions/1.json
@@ -81,15 +86,19 @@ class TransactionsController < ApplicationController
 
   private
 
-    def start_worker
-      TransactionWorker.perform_async(@transaction.id)
-      response.status = :accepted
-      render 'ingest'
-    end
+  def start_worker
+    TransactionWorker.perform_async(@transaction.id)
+    response.status = :accepted
+    render 'ingest'
+  end
 
     # Use callbacks to share common setup or constraints between actions.
     def set_transaction
+    begin
       @transaction = Transaction.find(params[:id])
+    rescue ActiveRecord::RecordNotFound
+      raise ActionController::RoutingError.new("Not Found")
+    end
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
