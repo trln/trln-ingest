@@ -1,14 +1,25 @@
 source 'https://rubygems.org'
 
+# if you get warnings about using the 'git' protocol to fetch TRLN gems,
+# execute
+#
+# $ bundle config github.https true
+#
+# in the repository.
+#
+git_source(:github) do |r|
+  "https://github.com/#{r}.git"
+end
+  
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.2'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 # Use Puma as the app server
-#gem puma
+gem 'puma'
 
 # or use passenger
-gem 'passenger', '~> 5.0.30'
+#gem 'passenger', '~> 5.0.30'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -54,9 +65,12 @@ gem 'active_record_upsert', platform: :mri
 
 gem 'pg'
 
-gem 'argot', :git => 'https://github.com/trln/argot-ruby.git'
+# :github specifier defaults to using git:// protocol, which generates
+# warnings. See comment at top of file.
 
-gem 'solrtasks', :git => 'https://github.com/trln/solrtasks.git'
+gem 'argot', '>= 0.3.9', :github => 'trln/argot-ruby'
+
+gem 'solrtasks', :github => 'trln/solrtasks'
 
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
@@ -83,4 +97,4 @@ group :development do
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+# gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

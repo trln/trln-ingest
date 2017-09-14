@@ -8,26 +8,19 @@ if [ "%1" == "-c" ]; then
 fi
 
 # todo -- autostart solr
-
-# bundle exec solrtask install
-# bundle exec solrtask start
-# cd solr-dir/solr-6.3.0
-# bin/solr -c trln-dev -n basic_configs
-# # now you have a collection with a data-driven schema
-# it will 'infer' that two fields are really integer fields.
-# easiest way to fix is:
-# ingest some documents, have it fail, then go to the Solr console
-# make sure the 'isbn' and 'syndetics_isbns fields are multivalued strings
-# now you are ready to reindex
-# issue a delete by query  *:* and a commit
-# now you are ready to ingest
-# nned to automate schema creation process, obviously =)
+# see rake tasks in the solrtask namespace
+# and read the documentation for the trln/solrtask gem
 
 if [ -z "$(pgrep -f sidekiq)" ]; then
 	# start sidekiq as a daemon
 	bundle exec sidekiq -d -L log/sidekiq.log 2> log/sidekiq.err
 fi
 
-bundle exec passenger start -d
+export APP_POSTGRES_HOST='localhost'
+# .password file is created during vagrant installation
+export APP_POSTGRES_PASSWORD=$(printf "%q" $(cat .password))
 
+# since you're forwarding port 3000 in vagrant, you need to
+# bind to 0.0.0.0
 
+bundle exec rails s -b 0.0.0.0 -d
