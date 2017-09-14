@@ -30,11 +30,14 @@ class IndexingProcessor
 
   def run
     logger.info 'Starting run'
-    contenter = Argot::Transformer.new { |doc| doc.content }
+    contenter = Argot::Transformer.new(&:content)
+    flattener = Argot::Transformer.new { |rec| Argot::Flattener.process(rec) }
     suffixer_instance = Argot::Suffixer.default_instance
     suffixer = Argot::Transformer.new { |rec| suffixer_instance.process(rec) }
-    flattener = Argot::Transformer.new { |rec| Argot::Flattener.process(rec) }
-    pipeline = Argot::Pipeline.new | contenter | suffixer | flattener
+    solr_filter = Spofford::SolrValidator.new do |rec, err|
+      logger.info("Record #{rec['id']} rejected: #{err.to_json}")
+    end
+    pipeline = Argot::Pipeline.new | contenter | flattener | suffixer | solr_filter
 
     acceptable_error_rate = Rational(1, 3)
     counts =  { error: 0, total: 0 }
@@ -45,7 +48,7 @@ class IndexingProcessor
           counts[:total] += 1
           writer.write(rec.to_json)
         rescue StandardError => e
-          logger.warn "unable to index record #{rec['id']} : #{e.message}"
+          logger.warn("unable to index record #{rec['id']} : #{e.message}")
           error_rate = Rational(counts[:error] += 1, counts[:total])
           if counts[:total] > 100 && error_rate > acceptable_error_rate
             raise "Error rate #{error_rate} too high, terminating"
@@ -54,9 +57,12 @@ class IndexingProcessor
       end
     end
     logger.info "Finished creating ingest chunks, wrote #{chunker.count} records to #{chunker.files.length} files"
+    unless solr_filter.errors.zero?
+      logger.warn('Some flattened documents were not sent to solr')
+    end
     SolrService.new('shared') do |solr|
       # commit only after all the files are processed
-      solr.json_doc_update(chunker.files, chunker.files.length+1)
+      solr.json_doc_update(chunker.files, chunker.files.length + 1)
     end
     logger.info 'Finished indexing'
     begin

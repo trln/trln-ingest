@@ -3,9 +3,9 @@ require 'spofford/deepstruct'
 require 'spofford/ingest_helper'
 require 'spofford/record_chunker'
 
-
 module Spofford
   autoload :LazyWriter, 'spofford/lazy_writer'
+  autoload :SolrValidator, 'spofford/solr_validator'
 
   Institution = Struct.new('Owner', :key, :prefix, :name) do
   end
