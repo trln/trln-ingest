@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: 5a947619ff456f0ffbce1e03c2c4282c7e3e85c9
+  revision: e7443e02f272de06803986795d3139e46847d08f
   specs:
     argot (0.3.9)
       rsolr (~> 1.1, >= 1.1.2)
@@ -11,9 +11,9 @@ GIT
 
 GIT
   remote: https://github.com/trln/solrtasks.git
-  revision: 564c5b654d609728cc04edcccbcfb61959bc1255
+  revision: 5ed6e537eb8f7ef3d71dd36a918af5aad96b3cd7
   specs:
-    solrtasks (0.2.3)
+    solrtasks (0.2.4)
       cocaine (~> 0.5.8)
       nokogiri
 
