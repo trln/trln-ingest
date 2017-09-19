@@ -1,17 +1,19 @@
-<%= content_for(:title, "TRLN Record Viewer: #{@doc.id}") %>
-<header class="<%= @doc.owner %>">
-  <h1>ID: <%= @doc.id %></h1>
-  <h3>Local ID: <%= @doc.local_id %></h3>
-</header>
+<%= content_for(:title, "TRLN Record : #{@doc.id}") %>
 <div class="main">
+  <div class="header <%= @doc.owner %>">
+    <h1>ID: <%= @doc.id %></h1>
+    <h3>Local ID: <%= @doc.local_id %></h3>
+  </div>
+
   <h3>Collection: <%= @doc.collection %></h3>
+  <%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary') %>
   <div class="metadata bibliographic">
     <dl>
       <dt>Title</dt>
        <dd>
         <dl>
           <dt>Main</dt>
-          <dd><%= @content.title.main.value %></dd>
+          <dd><%= @content.title.main[0].value %></dd>
         </dl>
        </dd>
       <% if @content.authors and @content.authors.main %>

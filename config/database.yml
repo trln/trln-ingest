@@ -7,10 +7,10 @@ development:
   adapter: postgresql
   encoding: unicode
   database: <%= ENV['APP_POSTGRES_USER'] || 'shrindex' %>
-  pool: 5
-  host: <%= ENV['APP_POSTGRES_HOST'] || 'localhost' %>
+  #pool: 5
+  #host: <%= ENV['APP_POSTGRES_HOST'] || 'localhost' %>
   username: shrindex
-  password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
+  #password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

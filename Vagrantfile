@@ -95,7 +95,7 @@ TMPL
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-     RUBYVER=2.3.3
+     RUBYVER=2.4.2
      HOMEDIR=/home/vagrant
      echo '#{dbpw}' > "${HOMEDIR}/.dbpassword"
      chown vagrant.vagrant ${HOMEDIR}/.dbpassword
@@ -107,7 +107,7 @@ TMPL
      # after 'automake', the packages are those that *would be* installed
      # by ruby-install; they are required for our precompiled ruby to 
      # work
-     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel lsof
+     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel lsof kernel-devel kernel-headers dkms java-1.8.0-openjdk-headless
 
      # we can only install redis *after* the epel-release repository has been installed
      # redis is used by sidekiq
@@ -158,17 +158,16 @@ TMPL
          sudo -u postgres /usr/bin/psql < /tmp/postgres-setup.sql
      fi
      export RCFILE=${HOMEDIR}/.bash_profile
-     if [ ! "$(grep chruby $RCFILE)" ]; then
+     if [ -z "$(grep chruby $RCFILE)" ]; then
         echo ''  >> $RCFILE
         echo '# Added by provisioner' >> $RCFILE
         echo 'chruby ruby' >> $RCFILE
      fi
-     if [ ! "$(grep pgsql-9.5 $RCFILE)" ]; then
+     if [ -z "$(grep pgsql-9.5 $RCFILE)" ]; then
         echo '' >> $RCFILE
         echo '# Added by provisioner' >> $RCFILE
         echo 'export PATH="\${PATH}":/usr/pgsql-9.5/bin' >> $RCFILE
      fi
      echo "Run /vagrant/install.sh next after you log in to set up the Rails dependencies"
   SHELL
-
 end

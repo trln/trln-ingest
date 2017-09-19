@@ -19,7 +19,7 @@ class TransactionProcessor
 
   def run
     logger.debug "Start job for #{@txn}"
-    @txn.update(status: 'Processing')
+    @txn.update(status: 'Ingesting')
     logger.debug "[txn:#{txn.id}}] files in #{txn.stash_directory}"
     process_deletes
     set_up
@@ -45,7 +45,7 @@ class TransactionProcessor
     if File.exist?(@error_file) && !txn.files.include?(@error_file)
       txn.files << @error_file
     end
-    txn.update(status: 'Complete')
+    txn.update(status: 'Stored')
   end
 
   def process_deletes
@@ -73,7 +73,7 @@ class TransactionProcessor
     end
   end
 
-  # rubocop:disable LineLength
+  # rubocop:disable LineLength, CyclomaticComplexity, PerceivedComplexity
   def process_document(rec)
     success = false
     begin

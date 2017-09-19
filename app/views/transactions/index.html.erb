@@ -1,8 +1,12 @@
-<p id="notice"><%= notice %></p>
+<%= content_for(:title, "TRLN Ingest: Recent Updates") %><p id="notice"><%= notice %></p>
+<div class="docsearch">
+ <form action='<%= url_for(controller: 'documents', action: 'search')%>' method='GET'>
+   <label>Search for record: <input type='text' size='16' maxlength='32' name='id', id='id' onchange='this.form.submit;'></label>
+   <button class='btn btn-primary'>Find Record</button>
+   </form>
+ </div>
 
-<h1>Recent Packages</h1>
-
-<table>
+<table class="table transactions">
   <thead>
     <tr>
       <th>Owner</th>
@@ -15,22 +19,26 @@
 
   <tbody>
     <% @transactions.each do |transaction| %>
-      <tr>
-        <td><%= transaction.owner %></td>
-        <td><%= transaction.created_at %></td>
+      <tr class="transaction">
+        <td class='owner <%= transaction.owner %>'><%= transaction.owner %></td>
+        <td><%= local_time transaction.created_at %> <br />
+          (<%= time_ago_in_words transaction.created_at %> ago)</td>
         <td><%= transaction.user %></td>
         <td><%= transaction.status %></td>
-        <td><%= link_to 'Show', transaction %></td>
+        <td><%= link_to 'View', transaction, class: 'btn btn-primary' %></td>
       </tr>
     <% end %>
   </tbody>
+  <tfoot>
+    <tr>
+       <td colspan='5'>
+      <%= will_paginate @transactions %>
+    </td>
+    </tr>
+    <tr>
+      <td colspan='5'>
+        <%= page_entries_info(@transactions, model: 'transactions') %>
+      </td>
+    </tr>
+  </tfoot>
 </table>
-
-<br>
-<div class="links ingest">
- <ul>
- <% %w[duke unc nccu ncsu].each do |owner| %>
-    <li><%= link_to "(#{owner}) Upload Ingest Package", new_transaction_path(:owner => owner) %></li>
- <% end %>
- </ul>
- </div>

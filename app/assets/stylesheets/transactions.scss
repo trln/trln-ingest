@@ -1,3 +1,30 @@
 // Place all the styles related to the Transactions controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+@import "globals";
+
+.transactions, .docsearch {
+	width: 60%;
+	margin: auto;
+}
+
+.transactions thead th {
+	background-color: $trln-bg-color;
+	color: #fff;
+}
+
+th {
+	text-align: center;
+	vertical-align: middle;
+}
+
+
+.transaction td {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.transaction td.owner {
+	font-weight: bold;
+}

@@ -1,26 +1,40 @@
 <p id="notice"><%= notice %></p>
-<header class="<%= @transaction.owner %>">
+
+<div class="transaction header <%= @transaction.owner %>">
   <h1><%= @transaction.owner %></h1>
   <h3>Tag: <%= @transaction.tag %></h3>
-</header>
+</div>
 
 <p>
   <strong>Initiated By:</strong>
-  <%= @transaction.user || "unknown" %> at <%= @transaction.created_at %>
+  <%= @transaction.user || "unknown" %> at <%= local_time @transaction.created_at %>
 </p>
 
 <p>
   <strong>Status:</strong>
   <%= @transaction.status || "(not determined)" %>
 </p>
-
 <p>
-  <strong>(Re)-Index</strong>
+ <% if @document_ids.empty? %>
+   The documents in this batch have all been updated since it was initially submitted.
+    Reindex is unavailable.
+ <% else %>
    <%= form_for @transaction, :url => url_for(:action => 'start_index'), :method => :post do |f| %> 
-    <%- f.submit %>
+    <% f.submit 'Reindex' %>
    <% end %>
-
+<% end %>
 </p>
+  <div class="documents">
+    <label>View Records: <input list="document_ids" name='nosubmit' id='nosubmit' onchange='window.location="<%= url_for(controller:'documents', trailing_slash: 1) %>" + this.value;'></label>
+    <datalist id='document_ids'>
+      <% @document_ids.each do |did| %>
+      <option value='<%= did.id %>'>
+      <% end %>
+   </datalist>
+  
+   <p>Note that later transactions may update a document, so this list will change over time.</p>
+ </div>
+
   
 
 <p>
