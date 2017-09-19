@@ -63,9 +63,9 @@ class IndexingProcessor
       end
     end
     logger.info "Wrote #{chunker.count} records to #{chunker.files.length} files"
-    unless solr_filter.errors.zero?
-      logger.warn('Some flattened documents were not sent to solr')
-    end
+    #unless solr_filter.errors.zero?
+    #  logger.warn('Some flattened documents were not sent to solr')
+    #end
     SolrService.new('shared') do |solr|
       # commit only after all the files are processed
       solr.json_doc_update(chunker.files, chunker.files.length + 1)
@@ -76,7 +76,7 @@ class IndexingProcessor
     rescue StandardError => e
       logger.warn "Chunker cleanup did not exit cleanly: #{e.message}"
     ensure
-      @transaction.update('Complete') if @transaction
+      @transaction.update(status: 'Complete') if @transaction
     end
   end
 end
