@@ -6,7 +6,7 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-Mime::Type.register "application/octet-stream", :binary
+Mime::Type.register 'application/octet-stream', :binary
 
 module TrlnIngest
   class Application < Rails::Application
@@ -21,12 +21,9 @@ module TrlnIngest
     # http://railsapps.github.io/rails-environment-variables.html
     config.before_configuration do
       env_file = File.join(Rails.root, 'config', 'local_env.yml')
-      if File.exists?(env_file)
+      if File.exist?(env_file)
         YAML.load_file(env_file).each { |key, value| ENV[key.to_s] = value }
       end
     end
-
-    config.action_controller.relative_url_root = '/spofford'
-
   end
 end

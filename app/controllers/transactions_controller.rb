@@ -7,12 +7,14 @@ class TransactionsController < ApplicationController
   # GET /transactions
   # GET /transactions.json
   def index
-    @transactions = Transaction.all
+    @transactions = Transaction.paginate(page: params[:page], per_page: 25).order('created_at DESC')
   end
 
   # GET /transactions/1
   # GET /transactions/1.json
-  def show; end
+  def show
+    @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
+  end
 
   # GET /transactions/new
   def new
@@ -25,7 +27,7 @@ class TransactionsController < ApplicationController
     start_worker
   end
 
-  protect_from_forgery except: %i[ingest_json ngest_zip]
+  protect_from_forgery except: %i[ingest_json ingest_zip]
 
   # POST /ingest/:owner ( application/zip )
   def ingest_zip

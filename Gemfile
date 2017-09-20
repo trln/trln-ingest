@@ -18,6 +18,14 @@ gem 'sqlite3'
 # Use Puma as the app server
 gem 'puma'
 
+gem 'will_paginate', '~> 3.1.6'
+
+# bootstrap styles
+#
+gem 'bootstrap', '~> 4.0.0.beta'
+
+gem 'local_time', '~> 2.0.0'
+
 # or use passenger
 #gem 'passenger', '~> 5.0.30'
 # Use SCSS for stylesheets

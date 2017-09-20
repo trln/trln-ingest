@@ -11,16 +11,15 @@ module Spofford
       @schema = schema.nil? ? Argot::SolrSchema.new : Argot::SolrSchema.new(schema)
       @collector = block
       @errors = 0
-    end
-
-    def filter(rec)
-      res = @schema.analyze(rec)
-      if res.empty?
-        true
-      else
-        @collector.call(rec, res) rescue nil if @collector
-        @errors += 1
-        false
+      super(name: 'solr-validator') do |rec|
+        res = @schema.analyze(rec)
+        if res.empty?
+          true
+        else
+          @collector.call(rec, res) rescue nil if @collector
+          @errors += 1
+          false
+        end
       end
     end
   end
