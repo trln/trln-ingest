@@ -7,5 +7,5 @@ services:
 
 before_script:
   - psql -c "create user shrindex;" -U postgres
-  - psql -c "create database shrindex_testing with owner shrindex;" -U postgres
+  - psql -c "alter user shrindex CREATEDB;" -U postgres
 
