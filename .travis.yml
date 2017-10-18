@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+  - 2.4.2
+
+services:
+  - postgresql '9.5'
+
+before_script:
+  - psql -c "create user shrindex;" -U postgres
+  - psql -c "create database shrindex_testing with owner shrindex;" -U postgres
+
