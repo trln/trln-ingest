@@ -12,6 +12,8 @@
       <h1><%= yield :title %></h1>
   </header>
   <body>
+    <%= render partial: 'devise/sessions/logout' %>
+    <%= render partial: 'notifications' %>
    <div id="main">
     <%= yield %>
     </div>

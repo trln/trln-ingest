@@ -13,6 +13,15 @@ end
   
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.2'
+
+gem 'devise', '~> 4.3.0'
+
+# adds authentication token features to devise;
+# can auth actions with a token instead of interactive
+# login
+# see https://github.com/gonzalo-bulnes/simple_token_authentication
+gem 'simple_token_authentication', '~> 1.0'
+
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 # Use Puma as the app server
@@ -27,7 +36,7 @@ gem 'bootstrap', '~> 4.0.0.beta'
 gem 'local_time', '~> 2.0.0'
 
 # or use passenger
-#gem 'passenger', '~> 5.0.30'
+# gem 'passenger', '~> 5.0.30'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -36,8 +45,13 @@ gem 'uglifier', '>= 1.3.0'
 # TypeScript (requires node)
 gem 'typescript-rails'
 
+# git is used to fetch mappings from github
+gem 'git', '~> 1.3.0'
+
+
+
 # Use CoffeeScript for .coffee assets and views
-#gem 'coffee-rails', '~> 4.2'
+# gem 'coffee-rails', '~> 4.2'
 # See https://github.com/rails/execjs#readme for more supported runtimes
 gem 'therubyracer', '~> 0.12.3', platforms: :ruby
 
@@ -102,6 +116,10 @@ group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'spring-watcher-listen', '~> 2.0.0'
+end
+
+group :test do
+	gem 'warden'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

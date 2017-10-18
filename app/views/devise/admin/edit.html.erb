@@ -1,0 +1,40 @@
+<h2>Administration: Users</h2>
+ <% if flash %>
+   <div class="messages">
+      <% flash.each do |cl, msg| %>
+      <div class='alert alert-<%= cl %>'>
+        <%= msg %>
+      </div>
+      <% end %>
+    </div>
+  <% end %>
+
+<%= form_for(@user, as: "Users", html: { method: :put }) do |f| %>
+  <div class="field">
+    <%= f.label :email,  "Account" %> <br>
+    <%= f.email_field :email, disabled: true %>
+  </div>
+
+  <% if current_user.admin? %>
+  <div class="field">
+    <%= f.label :admin, "Administrator?" %>
+    <%= f.check_box :admin %>
+  </div> 
+  <% end %>
+
+  <% if current_user.admin? || current_user == @user %>
+  <div class="actions">
+    <%= f.submit "Update" %>
+  </div>
+  <% end %>
+<% end %>
+
+ <% if @user == current_user %>
+    <div class="field">
+      <form id="new_token" method="post" action="<%= @user.id %>/new_token">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <button class="btn btn-warning">Generate New Access Token</button>
+      </form> 
+    </div>
+  <% end %>
+

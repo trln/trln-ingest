@@ -1,13 +1,13 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  owner: MyString
-  user: MyString
-  status: MyString
-  files: MyString
+  owner: ncsu
+  user: ajconsta
+  status: New
+  files: '{docs,errors}'
 
 two:
-  owner: MyString
-  user: MyString
-  status: MyString
-  files: MyString
+  owner: unc
+  user: kspurgin
+  status: Complete
+  files: '{docs,errors}'

@@ -47,6 +47,33 @@
 	color: $ncsu-fg-color;
 }
 
+nav.navbar {
+	float: right;
+}
+
+.nav-item {
+	a {
+		font-weight: bold;
+	}
+	a:hover {
+		color: #fff;
+	}
+}
+
+.notifications {
+	width: 80%;
+	margin: 1em auto;
+}
+
+.alert-alert {
+	@extend .alert-warning;
+}
+
+.alert-notice {
+	@extend .alert-info;
+}
+
+
 header {
     padding: .5rem;
  	min-height: 120px;

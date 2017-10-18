@@ -22,7 +22,7 @@ test:
   database: shrindex_testing
   pool: 1
   username: shrindex
-  password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
+  #password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
 
 production:
   <<: *default

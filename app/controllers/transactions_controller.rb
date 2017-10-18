@@ -2,6 +2,10 @@ require 'spofford'
 
 # Controller for managing transactions
 class TransactionsController < ApplicationController
+  protect_from_forgery except: %i[ingest_json ingest_zip]
+  acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
+
+  before_action :authenticate_user!
   before_action :set_transaction, only: %i[show edit update destroy]
 
   # GET /transactions
@@ -27,8 +31,6 @@ class TransactionsController < ApplicationController
     start_worker
   end
 
-  protect_from_forgery except: %i[ingest_json ingest_zip]
-
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
     if request.body.size.zero?
@@ -49,10 +51,10 @@ class TransactionsController < ApplicationController
     @owner = params[:owner]
     if request.body.size.zero?
       logger.info 'Received empty body'
-      return render(:text => "No content uploaded", :status => 400)
+      return render(text: 'No content uploaded', status: 400)
     end
-    files = [ Spofford::IngestHelper::accept_json(request.body, @owner, operation: 'add') ]
-    @transaction = Transaction.create(owner: @owner, files: files)
+    files = [Spofford::IngestHelper.accept_json(request.body, @owner, operation: 'add')]
+    @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
     @transaction.stash!
     @transaction.save!
     start_worker
