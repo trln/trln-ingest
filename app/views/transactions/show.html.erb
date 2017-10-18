@@ -41,7 +41,7 @@
   <strong>Files:</strong>
    <ul>
      <% @transaction.files.each do |f| %>
-      <li><%= File.basename(f) %> : <%= number_to_human_size File.size(f) %></li>
+      <li><%= File.basename(f) %> : <%= File.exist?(f) ? number_to_human_size(File.size(f)) : '(missing)' %></li>
      <% end %>
    </ul>
 </p>
