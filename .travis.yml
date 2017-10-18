@@ -6,7 +6,7 @@ addons:
   postgresql: 9.5
 
 services:
-  - postgresql '9.5'
+  - redis-server
 
 before_script:
   - psql -c "create user shrindex;" -U postgres
