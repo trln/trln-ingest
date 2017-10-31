@@ -15,26 +15,33 @@
     <%= f.email_field :email, disabled: true %>
   </div>
 
+
   <% if current_user.admin? %>
-  <div class="field">
-    <%= f.label :admin, "Administrator?" %>
+  <div class='field form-check'>
+    <%= f.check_box :approved %>
+    <%= f.label :approved, "Approved?" %>
+  </div>
+
+
+  <div class="field form-check">
     <%= f.check_box :admin %>
+    <%= f.label :admin, "Administrator?" %>
   </div> 
   <% end %>
 
   <% if current_user.admin? || current_user == @user %>
   <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
-  <% end %>
-<% end %>
-
- <% if @user == current_user %>
-    <div class="field">
+    <%= f.submit "Update",class: 'btn btn-primary' %>
+    <% if @user == current_user %>
       <form id="new_token" method="post" action="<%= @user.id %>/new_token">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <button class="btn btn-warning">Generate New Access Token</button>
       </form> 
-    </div>
   <% end %>
+  </div>
+  <% end %>
+
+<% end %>
+
+ 
 
