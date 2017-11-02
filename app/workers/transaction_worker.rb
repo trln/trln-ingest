@@ -1,18 +1,22 @@
 ##
 # Worker that processes a transaction via Sidekiq
-class TransactionWorker
-    include Sidekiq::Worker
-
-    def perform(transaction_id)
+class TransactionWorker < CancellableWorker
+  def perform(transaction_id)
+    return if cancelled?
+    begin
       txn = Transaction.find(transaction_id)
-      processor = TransactionProcessor.new(txn)
-      processor.logger = logger
-      begin
-        processor.run
-        logger.info("Starting indexer for #{transaction_id}")
-        IndexingWorker.perform_async(transaction_id)
-      end
+    rescue RecordNotFound
+      logger.info("Cancelling #{jid} because no txn matches id #{transaction_id}")
+      cancel!(jid)
+      return
     end
+    processor = TransactionProcessor.new(txn)
+    processor.logger = logger
+    begin
+      logger.info("Starting ingest for transaction #{transaction_id}")
+      processor.run
+      logger.info("Starting indexer for #{transaction_id}")
+      IndexingWorker.perform_async(transaction_id)
+    end
+  end
 end
-
-
