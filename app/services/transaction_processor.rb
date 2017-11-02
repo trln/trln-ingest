@@ -85,7 +85,7 @@ class TransactionProcessor
         local_id = local_id.is_a?(Hash) ? local_id['value'] : local_id.to_s
       end
       if result.errors?
-        @error_write.write(result.to_json)
+        @error_writer.write(result.to_json)
         return false
       end
 

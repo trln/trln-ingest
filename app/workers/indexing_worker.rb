@@ -1,11 +1,17 @@
 # Kicks off an indexing process
 #
-class IndexingWorker
-    include Sidekiq::Worker
-    def perform(txn_id, batch_size=5000)
-        logger.info "Creating Indexing processor for transaction(#{txn_id})"
-        processor = IndexingProcessor.from_transaction(txn_id, batch_size)
-        processor.logger = logger
-        processor.run
+class IndexingWorker < CancellableWorker
+  def perform(txn_id, batch_size = 5000)
+    return if cancelled?
+    begin
+      Transaction.find(txn_id)
+    rescue RecordNotFound
+      logger.warn("Canceling invalid job #{jid} becase txn(#{txn_id}) was not found")
+      cancel!(jid)
+      return
     end
+    processor = IndexingProcessor.from_transaction(txn_id, batch_size)
+    processor.logger = logger
+    processor.run
+  end
 end
