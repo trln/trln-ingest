@@ -29,6 +29,5 @@ class IngestHelperTest < ActiveSupport::TestCase
 
   def simple_asserts(data)
     assert data['owner'] == 'test', 'owner should be "test"'
-    assert data['collection'] == 'general', 'collection should be "general"'
   end
 end
