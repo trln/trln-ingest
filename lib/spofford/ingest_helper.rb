@@ -13,11 +13,9 @@ module Spofford
     # @option options [String] :collection default `collection` attribute value
     # @return [#call<Hash>] a process for transforming records.  
     def default_json_process(owner, options = {})
-      default_collection = options[:collection] || 'general'
       lambda do |rec|
         rec['owner'] ||= owner
         rec['institution'] ||= [rec['owner']]
-        rec['collection'] ||= default_collection
         rec
       end
     end
@@ -27,7 +25,7 @@ module Spofford
     # this method that transforms records in the event #default_json_process
     # does not fit your needs.
     # @param body [#read] stream of the Argot JSON
-    # @param owner [String] identifier for the owner of the records, if the 
+    # @param owner [String] identifier for the owner of the records, if the
     #        record does not already specify one.
     # @param options [Hash<Symbol, Object>] options for the processor
     # @option options [File] :output_file an (open) File object to write
@@ -61,11 +59,11 @@ module Spofford
     # @yield [Array<String>] filenames extracted from the archive.
     #        Files are stored in a temporary directory, so they must
     #        be fully processed in the block
+    # rubocop:disable MethodLength
     def accept_zip(body, owner, _options = {})
       body.binmode
       tempzip = stream_to_tempfile(body, owner, '.zip')
       Rails.logger.warn("Temp zip has #{File.size(tempzip)}")
-      #tempzip.flush
       files = []
       begin
         Dir.mktmpdir do |dir|
@@ -88,6 +86,7 @@ module Spofford
       ensure
         tempzip.close && tempzip.unlink unless tempzip.nil?
       end
+      files
     end
 
     # utility method, copies the input stream to a tempfile so we can

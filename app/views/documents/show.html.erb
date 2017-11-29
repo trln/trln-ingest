@@ -4,8 +4,7 @@
     <h1>ID: <%= @doc.id %></h1>
     <h3>Local ID: <%= @doc.local_id %></h3>
   </div>
-
-  <h3>Collection: <%= @doc.collection %></h3>
+  
   <%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary') %>
   <div class="metadata bibliographic">
     <dl>
@@ -30,6 +29,15 @@
          <% end %>
       </dl>
       <% end %>
+
+      <% if @doc.respond_to?(:virtual_collection) && @doc.virtual_collection.first %>
+       <dl>
+         <dt>Collections</dt>
+             <% @doc.virtual_collection.each do |coll| %>
+             <dd>>%= coll %></dd>
+             <% end %>
+       </dl>
+       <% end %>
 
     <% if @content.subjects %>
 
