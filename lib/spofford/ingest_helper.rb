@@ -11,13 +11,17 @@ module Spofford
     # @options options [Hash<Symbol, Object>] extra options for processing
     # records.
     # @option options [String] :collection default `collection` attribute value
-    # @return [#call<Hash>] a process for transforming records.  
-    def default_json_process(owner, options = {})
+    # @return [#call<Hash>] a process for transforming records.
+    def default_json_process(owner, _options = {})
       lambda do |rec|
         rec['owner'] ||= owner
         rec['institution'] ||= [rec['owner']]
         rec
       end
+    end
+
+    def logger
+      @logger ||= Rails.logger
     end
 
     # Processes an 'add' JSON file containing Argot records,
@@ -39,17 +43,19 @@ module Spofford
       block ||= default_json_process(owner, options)
       parser = Argot::Reader.new
       output_file = options[:output_file] || Tempfile.new(["add_#{owner}", '.json'])
-      Rails.logger.warn "Processing Argot file (size: #{body.size})" if body.respond_to?(:size)
-      parser.process(body) do |rec|
-        if rec.nil? || rec.empty?
-          Rails.logger.warn('nil record')
-        else
-          result = block.call(rec)
-          output_file.write(result.to_json)
+      logger.warn "Processing Argot file (size: #{body.size})"
+      if body.respond_to?(:size)
+        parser.process(body) do |rec|
+          if rec.nil? || rec.empty?
+            logger.warn('nil record')
+          else
+            result = block.call(rec)
+            output_file.write(result.to_json)
+          end
         end
       end
       output_file.close
-      Rails.logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)}")
+      logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)}")
       File.expand_path(output_file)
     end
 
@@ -59,11 +65,10 @@ module Spofford
     # @yield [Array<String>] filenames extracted from the archive.
     #        Files are stored in a temporary directory, so they must
     #        be fully processed in the block
-    # rubocop:disable MethodLength
     def accept_zip(body, owner, _options = {})
       body.binmode
       tempzip = stream_to_tempfile(body, owner, '.zip')
-      Rails.logger.warn("Temp zip has #{File.size(tempzip)}")
+      logger.warn("Temp zip has #{File.size(tempzip)}")
       files = []
       begin
         Dir.mktmpdir do |dir|
@@ -93,9 +98,9 @@ module Spofford
     # more safely open it with Zip::File
     def stream_to_tempfile(stream, owner, extension = '.zip')
       temp = Tempfile.new(["ingest-#{owner}", extension])
-      Rails.logger.warn("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
+      logger.warn("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
       written = IO.copy_stream(stream, temp)
-      Rails.logger.warn("Temp file has size #{File.size(temp)}; wrote #{written}")
+      logger.warn("Temp file has size #{File.size(temp)}; wrote #{written}")
       temp
     end
   end

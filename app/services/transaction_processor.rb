@@ -7,10 +7,9 @@ require 'spofford'
 # file creation, and writing updated Documents to the database
 # rubocop:disable MethodLength,AbcSize
 class TransactionProcessor
+  attr_writer :logger
 
-  attr_reader :logger
-  
-  attr_accessor :txn, :status, :start_time, :end_time, 
+  attr_accessor :txn, :status, :start_time, :end_time
 
   def initialize(source_txn)
     @txn = source_txn

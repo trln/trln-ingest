@@ -51,8 +51,46 @@
             </dd>
     <% end %>
     </dl>
-  <%= link_to('Argot/JSON format', :format => :json) %>
+ 
+  <div id="argot-views">
+    <h1>Document Views</h1>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#argot" aria-expanded="false" aria-controls="argot">
+      Argot
+    </button>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#enriched-view" aria-expanded="false" aria-controls="enriched-view">
+      Enriched Argot (what Solr ingests)
+    </button>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#solr-view" aria-expanded="false" aria-controls="solr-view">
+      Solr Document
+    </button>
 
-    <pre><%= pretty_json(@doc)  %></pre>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="argot enriched-view solr-view">
+      Expand / Collapse All
+    </button>
+    <div id="argot" class="collapse multi-collapse">
+      <div class="card card-body">
+        <h1>Argot (<%= link_to('Link', :format => :json) %>)</h1>
+        <span class='detail'>Currently Stored</span>
+        <code><pre><%= pretty_json(@doc.content) %></pre></code>
+      </div>
+    </div>
+
+    <div id="enriched-view" class="collapse multi-collapse">
+      <div class="card card-body">
+        <h1>Enriched Content (what gets sent to Solr)</h1>
+        <span class="detail">Generated at Indexing time</span>
+        <code><pre><%= pretty_json(@enriched) %></pre></code>
+      </div>
+    </div>
+    
+
+    <div id="solr-view" class="collapse multi-collapse">
+      <h1>Current Solr Content</h1>
+      <span class='detail'>Data currently in shared index</span>
+      <div class="card card-body">
+        <code><pre><%= pretty_json(@solr) %></pre></code>
+      </div>
+    </div>
+  </section>
   </div>
 </div>

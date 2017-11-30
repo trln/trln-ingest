@@ -97,17 +97,15 @@ class TransactionsController < ApplicationController
     render 'ingest'
   end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_transaction
-    begin
-      @transaction = Transaction.find(params[:id])
-    rescue ActiveRecord::RecordNotFound
-      raise ActionController::RoutingError.new("Not Found")
-    end
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_transaction
+    @transaction = Transaction.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    raise ActionController::RoutingError, 'Not Found'
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def transaction_params
-      params.require(:transaction).permit(:owner, :user, :status, :files)
-    end
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def transaction_params
+    params.require(:transaction).permit(:owner, :user, :status, :files)
+  end
 end
