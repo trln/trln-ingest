@@ -1,0 +1,17 @@
+button.btn-primary[aria-expanded=false] {
+	span.visible {
+		display: none;
+	}
+	span.hidden {
+		display: inline;
+	}
+}
+
+button.btn-primary[aria-expanded=true] {
+	span.visible {
+		display: inline;
+	}
+	span.hidden {
+		display: none;
+	}
+}
