@@ -12,4 +12,6 @@ before_script:
   - psql -c "create user shrindex;" -U postgres
   - psql -c "create database shrindex_testing OWNER shrindex;" -U postgres
   - psql -c "alter user shrindex CREATEDB;" -U postgres
+  - bundle exec rails db:migrate RAILS_ENV=test
+
 

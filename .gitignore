@@ -9,6 +9,8 @@
 /.bundle
 /.vagrant
 
+.ruby-version
+
 
 # Ignore the default SQLite database.
 /db/*.sqlite3
