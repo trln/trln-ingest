@@ -43,19 +43,18 @@ module Spofford
       block ||= default_json_process(owner, options)
       parser = Argot::Reader.new
       output_file = options[:output_file] || Tempfile.new(["add_#{owner}", '.json'])
-      logger.warn "Processing Argot file (size: #{body.size})"
-      if body.respond_to?(:size)
-        parser.process(body) do |rec|
-          if rec.nil? || rec.empty?
-            logger.warn('nil record')
-          else
-            result = block.call(rec)
-            output_file.write(result.to_json)
-          end
+      logger.debug "Read Argot: #{body} (#{body.size})" if body.respond_to?(:size)
+      parser.process(body) do |rec|
+        if rec.nil? || rec.empty?
+          logger.debug("nil record in #{body} : #{options}")
+        else
+          result = block.call(rec)
+          output_file.write(result.to_json)
         end
       end
+      output_file.flush
       output_file.close
-      logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)}")
+      logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)} : #{options}")
       File.expand_path(output_file)
     end
 
@@ -65,15 +64,16 @@ module Spofford
     # @yield [Array<String>] filenames extracted from the archive.
     #        Files are stored in a temporary directory, so they must
     #        be fully processed in the block
-    def accept_zip(body, owner, _options = {})
-      body.binmode
-      tempzip = stream_to_tempfile(body, owner, '.zip')
-      logger.warn("Temp zip has #{File.size(tempzip)}")
+    def accept_zip(body, owner, options = {})
       files = []
       begin
+        body.binmode
+        tempzip = stream_to_tempfile(body, owner, '.zip')
+        logger.warn("Temp zip has #{File.size(tempzip)}")
         Dir.mktmpdir do |dir|
           Zip::File.open(tempzip) do |zipfile|
             zipfile.each do |entry|
+              logger.debug("Processing #{entry}, with size: #{entry.size}")
               entry_file = File.join(dir, entry.name)
               if entry.name =~ /^add.*\.json/i
                 entry.get_input_stream do |f|
@@ -98,9 +98,9 @@ module Spofford
     # more safely open it with Zip::File
     def stream_to_tempfile(stream, owner, extension = '.zip')
       temp = Tempfile.new(["ingest-#{owner}", extension])
-      logger.warn("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
+      logger.debug("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
       written = IO.copy_stream(stream, temp)
-      logger.warn("Temp file has size #{File.size(temp)}; wrote #{written}")
+      logger.debug("Temp file has size #{File.size(temp)}; wrote #{written}")
       temp
     end
   end
