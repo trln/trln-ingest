@@ -3,7 +3,6 @@
 one:
   local_id: 000001
   owner: ncsu
-  collection: general
   content: '{}'
   txn_id: 1
   updated_by: ajconsta
@@ -11,7 +10,6 @@ one:
 two:
   local_id: 0000002
   owner: ncsu 
-  collection: general
   content: '{}' 
   txn_id: 1 
   updated_by: ajconsta

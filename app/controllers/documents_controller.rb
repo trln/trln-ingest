@@ -1,5 +1,11 @@
+require 'spofford'
+
+# represents a document that is stored locally and which
+# can be ingested into Solr.
 class DocumentsController < ApplicationController
+  include Spofford::ArgotViewer
   protect_from_forgery except: :do_post
+  before_action :authenticate_user!
 
   def index
     @documents = Document.order(:updated_at).take(10)
@@ -21,6 +27,8 @@ class DocumentsController < ApplicationController
     respond_to do |format|
       format.html do
         @content = @doc.content.to_ostruct_deep
+        @solr = fetch_solr(@doc.id)
+        @enriched = prepare_for_ingest(@doc.content)
         render 'show'
       end
       format.json do

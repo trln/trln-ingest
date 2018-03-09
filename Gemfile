@@ -66,7 +66,7 @@ gem 'rsolr'
 
 # allows fast processing of concatenated JSON
 
-gem 'yajl-ruby', require: 'yajl'
+gem 'yajl-ruby', '>= 1.3.1', require: 'yajl'
 
 # allow transactions to be sent in as .zip files
 gem 'rubyzip'
