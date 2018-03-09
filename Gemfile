@@ -12,7 +12,7 @@ git_source(:github) do |r|
 end
   
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.2'
+gem 'rails', '~> 5.1.0'
 
 gem 'devise', '~> 4.3.0'
 
@@ -78,6 +78,8 @@ gem 'hashids'
 
 gem 'sidekiq'
 
+#gem 'pg', '>= 0.21'
+
 # Postgres 9.5+ native "upsert" support
 # there are other approaches, some of which involve creating CSV files
 # https://github.com/jesjos/active_record_upsert is base
@@ -85,7 +87,6 @@ gem 'sidekiq'
 # :git => 'https://github.com/phoffer/active_record_upsert.git' a fork for the moment which allows us to use something other than id column as conflict column
 gem 'active_record_upsert', platform: :mri
 
-gem 'pg'
 
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
@@ -119,7 +120,7 @@ group :development do
 end
 
 group :test do
-	gem 'warden'
+  gem 'warden'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
