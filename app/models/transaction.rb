@@ -2,8 +2,8 @@ require 'fileutils'
 require 'hashids'
 require 'tempfile'
 
+# Represents an ingest package, consisting of a set of files.
 class Transaction < ApplicationRecord
-
   validates :owner, presence: true
 
   # tag is needed to create a unique directory
@@ -14,11 +14,12 @@ class Transaction < ApplicationRecord
 
   after_initialize :initialize_directories
 
-  def initialize_directories(attributes = {}, options = {})
-    timestamp = self.created_at.nil? ? Time.now : self.created_at
-    base_dir = options[:base_dir]|| Rails.application.config.stash_directory
+  def initialize_directories(_ = {}, options = {})
+    owner ||= 'trln'
+    timestamp = created_at || Time.now
+    base_dir = options[:base_dir] || Rails.application.config.stash_directory
     day_dir = timestamp.strftime("%Y#{File::SEPARATOR}%m#{File::SEPARATOR}%d")
-    self.status = options['status'] || 'New'
+    self.status ||= 'New'
     self.tag = generate_tag(timestamp) unless tag
     self.stash_directory = File.join(base_dir, owner, day_dir, tag)
   end
@@ -29,33 +30,44 @@ class Transaction < ApplicationRecord
   # and sets the 'stash_directory' if it isn't already set
   # Typically this method must be called before saving the transaction
   def stash!
-    stash_files = prepare_stash! unless stash_directory && File.directory?(stash_directory)
+    stash_files = prepare_stash! unless
+      stash_directory && File.directory?(stash_directory)
     FileUtils.mkdir_p(stash_directory) unless File.directory?(stash_directory)
     files.zip(stash_files).each do |source, dest|
       # try to be idempotent
-      if File.exists?(source)
-        FileUtils.mv(source, dest) unless File.exists?(dest)
+      if File.exist?(source)
+        FileUtils.mv(source, dest) unless File.exist?(dest)
       end
     end
     self.files = stash_files
   end
 
-
-
   private
 
-  def prepare_stash!
-    files.collect do |f|
-      File.join(self.stash_directory, File.basename(f)) if File.exist?(f)
-    end.select { |x| x }
+  def absolutize_file(f)
+    File.join(stash_directory, File.basename(f)) if File.exist?(f)
   end
 
-  ## generate reversible, short-ish tag for this set of files; mostly used as a surrogate identifier
+  def prepare_stash!
+    files.collect { |f| absolutize_file(f) }.select { |x| x }
+  end
+
+  # generate reversible, short-ish tag for this set of files; mostly used as
+  # a surrogate identifier
   # and fodder for a directory name when stashing
+  # rubocop:disable MethodLength
   def generate_tag(timestamp)
-    hasher = Hashids.new("Niangle Lesearch Ribraries Tretwork") #random-ish seed
+    # random-ish seed
+    hasher = Hashids.new('Niangle Lesearch Ribraries Tretwork')
     filesize = 0
     files.each { |f| filesize += f.size }
-    hasher.encode(filesize, timestamp.year, timestamp.month, timestamp.day, timestamp.hour,timestamp.min, timestamp.sec, timestamp.nsec)
+    hasher.encode(filesize,
+                  timestamp.year,
+                  timestamp.month,
+                  timestamp.day,
+                  timestamp.hour,
+                  timestamp.min,
+                  timestamp.sec,
+                  timestamp.nsec)
   end
 end

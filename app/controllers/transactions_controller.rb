@@ -2,17 +2,24 @@ require 'spofford'
 
 # Controller for managing transactions
 class TransactionsController < ApplicationController
+  include Spofford::IngestHelper
+  protect_from_forgery except: %i[ingest_json ingest_zip]
+  acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
+
+  before_action :authenticate_user!
   before_action :set_transaction, only: %i[show edit update destroy]
 
   # GET /transactions
   # GET /transactions.json
   def index
-    @transactions = Transaction.all
+    @transactions = Transaction.paginate(page: params[:page], per_page: 25).order('created_at DESC')
   end
 
   # GET /transactions/1
   # GET /transactions/1.json
-  def show; end
+  def show
+    @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
+  end
 
   # GET /transactions/new
   def new
@@ -25,8 +32,6 @@ class TransactionsController < ApplicationController
     start_worker
   end
 
-  protect_from_forgery except: %i[ingest_json ngest_zip]
-
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
     if request.body.size.zero?
@@ -34,7 +39,7 @@ class TransactionsController < ApplicationController
       return render(text: 'No content uploaded', status: 400)
     end
     @owner = params[:owner]
-    Spofford::IngestHelper.accept_zip(request.raw_post, @owner) do |files|
+    accept_zip(request.body, @owner) do |files|
       @transaction = Transaction.new(owner: @owner, files: files)
       @transaction.stash!
       @transaction.save!
@@ -47,10 +52,10 @@ class TransactionsController < ApplicationController
     @owner = params[:owner]
     if request.body.size.zero?
       logger.info 'Received empty body'
-      return render(:text => "No content uploaded", :status => 400)
+      return render(text: 'No content uploaded', status: 400)
     end
-    files = [ Spofford::IngestHelper::accept_json(request.body, @owner, operation: 'add') ]
-    @transaction = Transaction.create(owner: @owner, files: files)
+    files = [accept_json(request.body, @owner, operation: 'add')]
+    @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
     @transaction.stash!
     @transaction.save!
     start_worker

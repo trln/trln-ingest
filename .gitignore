@@ -4,7 +4,6 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile '~/.gitignore_global'
 #
-config/local_env.yml
 
 # Ignore bundler config.
 /.bundle
@@ -16,6 +15,7 @@ config/local_env.yml
 /db/*.sqlite3-journal
 
 # Ignore all logfiles and tempfiles.
+/bin/
 /log/*
 /tmp/*
 !/log/.keep
@@ -26,6 +26,9 @@ config/local_env.yml
 
 # Local customizations
 
+config/local_env.yml
+comfig/mappings 
+config/mappings/
 solr-dir
 .password
 postgres-setup.sql

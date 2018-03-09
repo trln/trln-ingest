@@ -14,7 +14,10 @@
  *= require_self
  */
 
-.ingest, .button {
+@import "bootstrap";
+@import 'globals';
+
+.ingest {
 	padding: 1rem;
 }
 
@@ -24,32 +27,67 @@
 	margin: 0 auto;
 }
 
-.button {
-	border-radius: .3rem;
-	font-weight: bold;
-	text-decoration: none;
-}
-
 .duke {
-	background-color: #0A2B66;
-	color: #fff;
+	background-color: $duke-bg-color;
+	color: $duke-fg-color;
 }
 
 .nccu {
-	background-color: #8c2332;
-	color: #fff;
+	background-color: $nccu-bg-color;
+	color: $nccu-fg-color;
 }
 
 .unc {
-	background-color: #56A0D3;
-	color: #000;
+	background-color: $unc-bg-color;
+	color: $unc-fg-color;
 }
 
 .ncsu {
-	background-color: #CC0000;
-	color: #fff;
+	background-color: $ncsu-bg-color;
+	color: $ncsu-fg-color;
 }
+
+nav.navbar {
+	float: right;
+}
+
+.nav-item {
+	a {
+		font-weight: bold;
+	}
+	a:hover {
+		color: #fff;
+	}
+}
+
+.notifications {
+	width: 80%;
+	margin: 1em auto;
+}
+
+.alert-alert {
+	@extend .alert-warning;
+}
+
+.alert-notice {
+	@extend .alert-info;
+}
+
 
 header {
     padding: .5rem;
+ 	min-height: 120px;
+	background: image-url('logo.jpg') no-repeat $trln-bg-color;
+	h1, h2, h3, h4, h5, h6 {
+		padding-left: 220px;
+		color: $trln-fg-color;
+	}
+}
+
+.pagination {
+	font-size: 1.2em;
+	a, span, em {
+		margin: auto 1em;
+	}
+
 }

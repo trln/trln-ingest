@@ -19,7 +19,7 @@ class TransactionProcessor
 
   def run
     logger.debug "Start job for #{@txn}"
-    @txn.update(status: 'Processing')
+    @txn.update(status: 'Ingesting')
     logger.debug "[txn:#{txn.id}}] files in #{txn.stash_directory}"
     process_deletes
     set_up
@@ -45,7 +45,7 @@ class TransactionProcessor
     if File.exist?(@error_file) && !txn.files.include?(@error_file)
       txn.files << @error_file
     end
-    txn.update(status: 'Complete')
+    txn.update(status: 'Stored')
   end
 
   def process_deletes
@@ -73,26 +73,33 @@ class TransactionProcessor
     end
   end
 
-  # rubocop:disable LineLength
+  # rubocop:disable LineLength, CyclomaticComplexity, PerceivedComplexity
   def process_document(rec)
     success = false
     begin
-      result = @validator.is_valid?(rec)
-      if rec.fetch('local_id', '').empty?
+      result = @validator.valid?(rec)
+      local_id = rec['local_id']
+      if local_id.nil?
         result << Argot::RuleResult.new('local_id must be present', ['local_id is missing'], [])
-      end
-      if !result.has_errors?
-        # upsert requires pg driver -- no jruby -- and upsert gem
-        Document.upsert(id: rec['unique_id'] || rec['id'],
-                        local_id: rec['local_id'],
-                        owner: rec['owner'] || rec['source'],
-                        collection: rec['collection'] || 'general',
-                        content: rec,
-                        txn: txn)
-        success = true
       else
-        @error_writer.write(result.to_json)
+        local_id = local_id.is_a?(Hash) ? local_id['value'] : local_id.to_s
       end
+      if result.errors?
+        @error_writer.write(result.to_json)
+        return false
+      end
+
+      d = Document.new(id: rec['id'] || rec['unique_id'])
+      d.local_id = local_id
+      d.owner = rec['owner'] || rec['source']
+      d.collection = rec['collection'] || 'general'
+      d.content = rec
+      d.txn = txn
+      if d.valid?
+        d.upsert
+        return true
+      end
+      @error_writer.write(d.errors.to_json)
     rescue StandardError => ex
       logger.error "Unable to process #{rec['id']} (#{@count + @errors} record in file)"
       logger.error(ex.backtrace.join("\n"))

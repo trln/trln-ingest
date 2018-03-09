@@ -1,12 +1,8 @@
 module Spofford
-
   # IO-like object that sends output to a series of files
   # in defined chunk sizes.
   class Chunker
-
-    DEFAULTS = {
-      :chunk_size => 5000
-    }
+    DEFAULTS = { chunk_size: 5000 }.freeze
 
     attr_reader :files, :count, :chunk_size, :dir
 

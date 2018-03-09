@@ -1,0 +1,35 @@
+<table class='table'>
+ <thead>
+   <tr>
+     <th>Email</th>
+     <th>Admin</th>
+     <th>Edit</th>
+   </tr>
+  </thead>
+  <tbody>
+   <% @users.each do |u| %>
+   <tr>
+    <td class='email'><%= u.email %></td>
+    <td class="admin <%= u.admin? ? 'is_admin' : '' %>">
+      <%= u.admin? ? "Yes" : "No" %>
+    </td>
+    <td>
+      <%= link_to 'Edit', u, class: 'btn btn-primary' %>
+    </td>
+  </tr>
+  <% end %>
+ </tbody>
+  <tfoot>
+    <tr>
+       <td colspan='3'>
+      <%= will_paginate @users %>
+    </td>
+    </tr>
+    <tr>
+      <td colspan='5'>
+        <%= page_entries_info(@users, model: 'users') %>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
