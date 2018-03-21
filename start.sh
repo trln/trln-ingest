@@ -16,11 +16,32 @@ if [ -z "$(pgrep -f sidekiq)" ]; then
 	bundle exec sidekiq -d -L log/sidekiq.log 2> log/sidekiq.err
 fi
 
-export APP_POSTGRES_HOST='localhost'
-# .password file is created during vagrant installation
-export APP_POSTGRES_PASSWORD=$(printf "%q" $(cat .password))
+# environment vars may be established by a calling script, e.g. when running as a service
+# use local defintions unless that's happened.
+
+if [ -z "$APP_POSTGRES_HOST" ]; then
+    export APP_POSTGRES_HOST='localhost'
+fi
+
+if [ -z "$APP_POSTGRES_PASSWORD" ]; then
+    # .password file is created during vagrant installation
+    # if that doesn't exist, then ... what else is there to do?
+    export APP_POSTGRES_PASSWORD=$(printf "%q" $(cat .password))
+fi
 
 # since you're forwarding port 3000 in vagrant, you need to
-# bind to 0.0.0.0
+# bind to 0.0.0.0, but only then
 
-bundle exec rails s -b 0.0.0.0 -d
+# this will exit successfully if there is a 'vagrant' user, which is
+# the best generic test we can come up with for running under vagrant
+grep -q '^vagrant:' /etc/passwd
+
+if [[ "$?" == "0" ]]; then
+    echo "Looks like we're running on a vagrant host"
+    echo "Binding to all interfaces for port forwarding. "
+    echo "If you are running in production or on a dedicated host, THIS IS NOT GOOD"
+    bundle exec rails s -b 0.0.0.0 -d
+else
+   # in any other environment, don't do that.
+   bundle exec rails s -d
+fi
