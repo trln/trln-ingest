@@ -100,6 +100,7 @@ module Spofford
       temp = Tempfile.new(["ingest-#{owner}", extension])
       logger.debug("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
       written = IO.copy_stream(stream, temp)
+      temp.fsync
       logger.debug("Temp file has size #{File.size(temp)}; wrote #{written}")
       temp
     end
