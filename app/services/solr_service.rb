@@ -20,17 +20,25 @@ class SolrService
         end
     end
 
+    # Deletes documents from the index by ID.
+    # always commits after running
+    # @param ids [Array<String>] an array of IDs to delete from the Solr index
+    def delete_by_ids(ids)
+        @client.delete_by_id(ids)
+        @client.commit()
+    end
+
     # Send an array of (concatenated) JSON files containing indexable documents
     # to the update URL for the collection.
     # @param files [Array<String>] filenames
     # @param commit_interval [Integer] number of files to submit before issuing a commit; set to 0 to commit after all files are processed,
     #    and to -1 to disable commiting entirely (manual commit).
-    def json_doc_update(files,commit_interval =1) 
+    def json_doc_update(files,commit_interval=0) 
         count = 0
         files.each do |filename|
             @client.update(:path => 'update/json/docs', :headers => { 'Content-Type' => 'application/json' }, :data => File.read(filename))
             count += 1
-            if commit_interval >= 0 and (count % commit_interval) ==0 and 
+            if commit_interval > 0 and (count % commit_interval) ==0 and 
                 @client.commit
             end
         end
