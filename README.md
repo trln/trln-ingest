@@ -82,8 +82,23 @@ One gem that might give you some trouble is the `pg` gem.  Check the
 
 ### Application Notes
 
-Vagrant setup forwards port 3000 to the host, so opening your browser to http://localhost:3000 will let you interact with
+Vagrant setup forwards port 3000 to port 3001 on the host, so opening your
+browser to http://localhost:3001 will let you interact with
 Spofford.
+
+### Logging In
+
+If you are running under Vagrant, and you have already created your database with 
+
+    $ bundle exec rake db:migrate
+
+You will be able to create an initial admin user (this is disabled for other
+contexts for security reasons) by running the custom task:
+
+    $ bundle exec rake user:admin
+
+This will create a user `admin@localhost` with the password you can see by
+looking in `lib/tasks/user.rake`; it will have admin privileges and be approved to use the application.
 
 #### Running Spofford 
 
@@ -94,11 +109,11 @@ Spofford.
 The index page shows the most recent 'transactions' (ingest package submissions).  Transaction pages have paths like `/transaction/:id`
 
 Once documents are ingested, they can be viewed at
-`http://localhost:3000/record/:id` where `:id` is the unique ID of the record, e.g. something like `NCCU1293879`.  This resulting page gives you a quick overview of the record's main characteristics and shows you the 'raw' Argot stored for it.  `/record` by itself will show you links to a bunch of recently updated records.
+`http://localhost:3001/record/:id` where `:id` is the unique ID of the record, e.g. something like `NCCU1293879`.  This resulting page gives you a quick overview of the record's main characteristics and shows you the 'raw' Argot stored for it.  `/record` by itself will show you links to a bunch of recently updated records.
 
 #### Ingest 
 
-You can POST Argot flavoured concatenated JSON' to `http://localhost:3000/ingest/[institution code]` and it 
+You can POST Argot flavoured concatenated JSON' to `http://localhost:3001/ingest/[institution code]` and it 
 will do some minimal pre-processing on your files, and stash them.  You can also POST a `.zip` file containing multiple JSON files.  ZIP entries matching the pattern `add*.json` will be interpreted as containing Argot records to be updated, while files named `delete*.json` will be interpreted as JSON arrays containing IDs (in the form 'NCSU234098')  to be deleted.
 
 Before returning, it will kick off an asynchronous process (via sidekiq) that ingests your documents.  You can monitor the progress of these jobs via Sidekiq.
@@ -162,7 +177,7 @@ Nothing's really been set up for testing yet.
 
 Install [spofford-client](/trln/spofford-client), or if you like to do things manually:
 
-   $ curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3000/ingest/unc
+   $ curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3001/ingest/unc
 
 (-v is optional, but can help to read what's going on in case anything fails)
 If you have a `.zip` file, change "application/json" to "application/zip".
