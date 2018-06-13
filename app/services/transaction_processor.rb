@@ -34,10 +34,9 @@ class TransactionProcessor
 
   private
 
-  def set_up
-    @reader = Argot::Reader.new
+  def set_up   
     @count = @errors = 0
-    @validator = Argot::Validator.from_files
+    @validator = Argot::Validator.new
     @error_file = File.join(txn.stash_directory, 'errors.json')
     @error_writer = Spofford::LazyWriter.new(@error_file)
   end
@@ -52,9 +51,17 @@ class TransactionProcessor
 
   def process_deletes
     logger.debug("[txn:#{@txn.id}]i Looking for delete files")
-    Dir.glob("#{txn.stash_directory}/delete*.json").each do |df|
+    Dir.glob("#{txn.stash_directory}/delete*").each do |df|
       begin
-        deletables = JSON.parse(df).collect { |doc_id| Document.find(doc_id) }
+        if df.end_with?('.json')
+          logger.debug("Processing JSON deletes #{df}")
+          deletables = JSON.parse(df).collect { |doc_id| Document.find(doc_id) }
+        else
+          logger.debug("Processing text deletes #{df}")
+          deletables = File.open(df) do |f|
+            f.each_line.collect(&:strip).reject(&:empty?).reject { |x| x.start_with?('#') }
+          end
+        end
         Document.transaction do
           deletables.each { |goner| goner.update(txn: @txn, deleted: true) }
         end
@@ -68,43 +75,55 @@ class TransactionProcessor
   def process_file(filename)
     File.open(filename) do |io|
       Document.transaction do
-        @reader.process(io) do |rec|
-          process_document(rec) && @count += 1 || @error += 1
+        Argot::Reader.new(io).each do |rec|
+          if rec['local_id'].is_a?(String)
+            rec['local_id'] = {
+              'value' => rec['local_id'],
+              'other' => []
+            }
+          end
+          valid = @validator.valid?(rec) do |results|
+            errdoc = {
+              id: rec.fetch('id', '<unknown id>'),
+              msg: results.first_error,
+              errors: []
+            }
+            results.errors.each_with_object(errdoc) do |err, ed|
+              ed[:errors] << err
+            end
+            @error_writer.write(errdoc.to_json)
+          end
+          if valid
+            process_document(rec) && @count += 1 || @errors += 1
+          else
+            @errors += 1
+          end
         end
       end
     end
   end
 
-  # rubocop:disable LineLength, CyclomaticComplexity, PerceivedComplexity
+  # rubocop:disable LineLength
   def process_document(rec)
     success = false
     begin
-      result = @validator.valid?(rec)
-      local_id = rec['local_id']
-      if local_id.nil?
-        result << Argot::RuleResult.new('local_id must be present', ['local_id is missing'], [])
-      else
-        local_id = local_id.is_a?(Hash) ? local_id['value'] : local_id.to_s
-      end
-      if result.errors?
-        @error_writer.write(result.to_json)
-        return false
-      end
-
       d = Document.new(id: rec['id'] || rec['unique_id'])
-      d.local_id = local_id
+      d.local_id = rec.fetch('local_id', {'value'=> '<unknown>'})['value']
       d.owner = rec['owner'] || rec['source']
       d.content = rec
       d.txn = txn
       if d.valid?
         d.upsert
-        return true
+        success = true
+      else
+        @error_writer.write(d.errors.to_json)
       end
-      @error_writer.write(d.errors.to_json)
     rescue StandardError => ex
       logger.error "Unable to process #{rec['id']} (#{@count + @errors} record in file)"
       logger.error(ex.backtrace.join("\n"))
     end
     success
   end
+  # rubocop:enable LineLength
 end
+# rubocop:enable MethodLength,AbcSize

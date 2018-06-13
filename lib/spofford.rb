@@ -1,4 +1,5 @@
 require 'argot'
+require 'spofford/version'
 require 'spofford/deepstruct'
 
 # Top level namespace for Spofford (trln-ingest) specific features.
@@ -8,7 +9,6 @@ module Spofford
   autoload :LazyWriter, 'spofford/lazy_writer'
   autoload :SolrValidator, 'spofford/solr_validator'
   autoload :ArgotViewer, 'spofford/argot_viewer'
-  autoload :VERSION, 'spofford/version'
 
   Institution = Struct.new('Owner', :key, :prefix, :name) do
   end
