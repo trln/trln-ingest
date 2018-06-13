@@ -25,5 +25,7 @@ Rails.application.routes.draw do
   get   '/record/search', to: 'documents#search'
   get   '/record/:id' => 'documents#show', :defaults => { format: 'html'}, as: 'show_document'
 
-  mount Sidekiq::Web => '/sidekiq'
+  authenticate :user, ->(u) { u.admin? } do
+    mount Sidekiq::Web => '/sidekiq'
+  end
 end
