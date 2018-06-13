@@ -23,7 +23,7 @@
   <tbody>
     <% @transactions.each do |transaction| %>
       <tr class="transaction">
-        <td class='owner <%= transaction.owner %>'><%= transaction.owner %></td>
+        <td class='owner <%= transaction.owner.downcase %>'><%= transaction.owner %></td>
         <td><%= local_time transaction.created_at %> <br />
           (<%= time_ago_in_words transaction.created_at %> ago)</td>
         <td><%= transaction.user %></td>
