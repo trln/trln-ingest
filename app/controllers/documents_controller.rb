@@ -29,6 +29,7 @@ class DocumentsController < ApplicationController
         @content = @doc.content.to_ostruct_deep
         @solr = fetch_solr(@doc.id)
         @enriched = prepare_for_ingest(@doc.content)
+        @luke = fetch_luke_doc(@doc.id)
         render 'show'
       end
       format.json do

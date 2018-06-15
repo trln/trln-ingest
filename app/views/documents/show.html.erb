@@ -70,7 +70,13 @@
       Solr Document
     </button>
 
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="argot enriched-view solr-view">
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target='#luke-view' aria-expanded='false' aria-controls='luke-view'>
+      <span class='visible'>Hide</span>
+      <span class='hidden'>Show</span>
+      Advanced Solr View
+    </button>
+
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="argot enriched-view solr-view luke-view">
      <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       All
@@ -99,6 +105,15 @@
         <code><pre><%= pretty_json(@solr) %></pre></code>
       </div>
     </div>
+
+    <div id="luke-view" class="collapse multi-collapse">
+      <h1>Advanced Solr Index View</h1>
+      <span class='detail'>Analyzed field content in Solr index</span>
+      <div class="card card-body">
+        <code><pre><%= pretty_json(@luke) %></pre></code>
+      </div>
+    </div>
+
   </section>
   </div>
 </div>

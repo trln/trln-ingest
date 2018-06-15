@@ -28,18 +28,22 @@ class UsersController < ApplicationController
 
   def update
     form_params = params['Users']
+
     approved = { previous: @user.approved }
+    institution = { new: form_params['primary_institution'], previous: @user.primary_institution }
     admin = { previous: @user.admin }
     approved[:new] = form_params['approved'] == '1'
     admin[:new] = form_params['admin'] == '1'
 
-    flashes = { success: [], info: []}
+    flashes = { success: [], info: [] }
 
     if approved[:new]
       flashes[:success] << 'Account has been approved' unless approved[:previous]
     else
       flashes[:info] << 'Account has been disapproved' if approved[:previous]
     end
+
+    flashes[:info] << 'Institution changed' if institution[:new] != institution[:previous]
 
     if admin[:new]
       flashes[:success] << "#{@user.email} is now an administrator" unless admin[:previous]
@@ -48,13 +52,17 @@ class UsersController < ApplicationController
     end
     flashes.each { |k, msgs| flash[k] = msgs.join('<br>') unless msgs.empty? }
 
-    changed = admin[:previous] != admin[:new] || approved[:previous] != approved[:new]
+    changed = admin[:previous] != admin[:new] || approved[:previous] != approved[:new] || institution[:prevous] != institution[:new]
     unless changed
       flash[:info] = 'No changes were made'
       return redirect_to @user
     end
 
-    @user.update(admin: admin[:new], approved: approved[:new])
+    @user.update(
+      admin: admin[:new],
+      approved: approved[:new],
+      primary_institution: institution[:new]
+    )
     redirect_to @user
   end
 

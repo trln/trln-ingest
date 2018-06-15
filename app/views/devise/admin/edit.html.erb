@@ -15,6 +15,11 @@
     <%= f.email_field :email, disabled: true %>
   </div>
 
+  <div class='field'>
+    <%= f.label :primary_institution, 'Institituion' %> <br />
+    <%= f.text_field :primary_institution %>
+  </div>
+
 
   <% if current_user.admin? %>
   <div class='field form-check'>

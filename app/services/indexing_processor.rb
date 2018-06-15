@@ -29,17 +29,29 @@ class IndexingProcessor
     end
   end
 
-  # rubocop:disable AbcSize
+  # rubocop:disable AbcSize,MethodLength
   def build_pipeline
+    @deletes = []
+    deleter = Argot::Filter.new do |rec|
+      if rec.deleted?
+        @deletes << rec.id
+        false
+      else
+        true
+      end
+    end
     contenter = Argot::Transformer.new(&:content)
-    flattener = Argot::Transformer.new { |rec| Argot::Flattener.process(rec) }
-    suffixer_instance = Argot::Suffixer.default_instance
-    suffixer = Argot::Transformer.new { |rec| suffixer_instance.process(rec) }
+    flattener = Argot::Flattener.new.as_block
+    suffixer = Argot::Suffixer.new.as_block
+
+    flatten = Argot::Transformer.new(&flattener)
+    suffix = Argot::Transformer.new(&suffixer)
     solr_filter = Spofford::SolrValidator.new do |rec, err|
       logger.info("Record #{rec['id']} rejected: #{err.to_json}")
     end
-    Argot::Pipeline.new | contenter | flattener | suffixer | solr_filter
+    Argot::Pipeline.new | deleter | contenter | flatten | suffix | solr_filter
   end
+  # rubocop:enable AbcSize, MethodLength
 
   def run
     logger.info 'Starting run'
@@ -63,10 +75,9 @@ class IndexingProcessor
       end
     end
     logger.info "Wrote #{chunker.count} records to #{chunker.files.length} files"
-    #unless solr_filter.errors.zero?
-    #  logger.warn('Some flattened documents were not sent to solr')
-    #end
     SolrService.new('shared') do |solr|
+      # first process any deletes
+      solr.delete_by_ids(@deletes) unless @deletes.empty?
       # commit only after all the files are processed
       solr.json_doc_update(chunker.files, chunker.files.length + 1)
     end

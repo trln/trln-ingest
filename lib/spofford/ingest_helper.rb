@@ -41,10 +41,10 @@ module Spofford
     # @yieldreturn [Hash<String, Object>] the transformed Argot record.
     def accept_json(body, owner, options = {}, &block)
       block ||= default_json_process(owner, options)
-      parser = Argot::Reader.new
       output_file = options[:output_file] || Tempfile.new(["add_#{owner}", '.json'])
       logger.debug "Read Argot: #{body} (#{body.size})" if body.respond_to?(:size)
-      parser.process(body) do |rec|
+      parser = Argot::Reader.new(body)
+      parser.each do |rec|
         if rec.nil? || rec.empty?
           logger.debug("nil record in #{body} : #{options}")
         else
