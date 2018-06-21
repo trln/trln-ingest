@@ -7,6 +7,8 @@ Rails.application.routes.draw do
     post '/users/:id/new_token', to: 'users#new_token!'
   end
 
+  get '/dashboard' => 'dashboard#index'
+
   resources :transactions
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root to: 'transactions#index'
