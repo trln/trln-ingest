@@ -49,8 +49,12 @@ class Transaction < ApplicationRecord
 
   def errors
     error_files.map do |filename|
-      File.open(filename) do |f|
-        Argot::Reader.new(f).collect.to_a
+      if File.exist?(filename)
+        File.open(filename) do |f|
+          Argot::Reader.new(f).collect.to_a
+        end
+      else
+        { 'id' => 'N/A', 'msg' => "File #{filename} not found" }
       end
     end.flatten
   end

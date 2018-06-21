@@ -44,18 +44,23 @@ module Spofford
       output_file = options[:output_file] || Tempfile.new(["add_#{owner}", '.json'])
       logger.debug "Read Argot: #{body} (#{body.size})" if body.respond_to?(:size)
       parser = Argot::Reader.new(body)
-      parser.each do |rec|
-        if rec.nil? || rec.empty?
-          logger.debug("nil record in #{body} : #{options}")
-        else
-          result = block.call(rec)
-          output_file.write(result.to_json)
+      begin
+        parser.each do |rec|
+          if rec.nil? || rec.empty?
+            logger.debug("nil record in #{body} : #{options}")
+          else
+            result = block.call(rec)
+            output_file.write(result.to_json)
+          end
         end
+        output_file.flush
+        output_file.close
+        logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)} : #{options}")
+        File.expand_path(output_file)
+      rescue Yajl::ParseError => e
+        logger.error("Ingest pacakge contained unprocessable JSON, #{e.message}")
+        raise ArgumentError, "Unable to process invalid JSON: #{e.message}"
       end
-      output_file.flush
-      output_file.close
-      logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)} : #{options}")
-      File.expand_path(output_file)
     end
 
     ## extracts JSON files from zipped body, pre-processing any
