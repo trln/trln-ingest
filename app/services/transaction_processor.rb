@@ -5,7 +5,6 @@ require 'spofford'
 
 # Service that processes Transaction objects, including validation, error
 # file creation, and writing updated Documents to the database
-# rubocop:disable MethodLength,AbcSize
 class TransactionProcessor
   attr_writer :logger
 
@@ -34,7 +33,7 @@ class TransactionProcessor
 
   private
 
-  def set_up   
+  def set_up
     @count = @errors = 0
     @validator = Argot::Validator.new
     @error_file = File.join(txn.stash_directory, 'errors.json')
@@ -49,27 +48,54 @@ class TransactionProcessor
     txn.update(status: 'Stored')
   end
 
-  def process_deletes
-    logger.debug("[txn:#{@txn.id}]i Looking for delete files")
-    Dir.glob("#{txn.stash_directory}/delete*").each do |df|
-      begin
-        if df.end_with?('.json')
-          logger.debug("Processing JSON deletes #{df}")
-          deletables = JSON.parse(df).collect { |doc_id| Document.find(doc_id) }
-        else
-          logger.debug("Processing text deletes #{df}")
-          deletables = File.open(df) do |f|
-            f.each_line.collect(&:strip).reject(&:empty?).reject { |x| x.start_with?('#') }
-          end
-        end
-        Document.transaction do
-          deletables.each { |goner| goner.update(txn: @txn, deleted: true) }
-        end
-      rescue JSON::ParserError
-        logger.warn "Unable to read delete: #{df} for Transaction(#{txn.id})"
+  def read_json_deletes(filename)
+    logger.info("Processing JSON deletes #{filename}")
+    deletables = []
+    begin
+      File.open(filename) do |f|
+        deletables = JSON.load(f).collect(&:itself)
       end
+    rescue JSON::ParserError => jpe
+      logger.warn "Unable to read delete: #{filename} for Transaction(#{txn.id}) : #{jpe}"
     end
-    logger.debug 'deletes [ done ]'
+    deletables
+  end
+
+  def read_text_deletes(filename)
+    logger.info("Processing text deletes #{filename}")
+    deletables = File.open(filename) do |f|
+      f.each_line.collect(&:strip).reject(&:empty?).reject { |x| x.start_with?('#') }
+    end
+    deletables
+  end
+
+  def process_deletes
+    logger.info("[txn:#{@txn.id}] Looking for delete files")
+    Dir.glob("#{txn.stash_directory}/delete*").each do |df|
+      deletables = if df.end_with?('.json')
+                     read_json_deletes(df)
+                   else
+                     read_test_deletes(df)
+                   end
+
+      goners = deletables.map do |doc_id|
+        begin
+          Document.find(doc_id)
+        rescue ActiveRecord::RecordNotFound
+          logger.warn "Found ID #{doc_id} to delete, not found"
+        end
+      end.select(&:itself)
+      count = 0
+      Document.transaction do
+        goners.each do |goner|
+          logger.info "Marking #{goner.id} as deleted"
+          goner.update(txn: @txn, deleted: true)
+          count += 1
+        end
+      end
+      logger.info "Processed #{count} deletes [ #{df} ]"
+    end
+    logger.info 'Finished processing deletes'
   end
 
   def process_file(filename)
@@ -103,12 +129,11 @@ class TransactionProcessor
     end
   end
 
-  # rubocop:disable LineLength
   def process_document(rec)
     success = false
     begin
       d = Document.new(id: rec['id'] || rec['unique_id'])
-      d.local_id = rec.fetch('local_id', {'value'=> '<unknown>'})['value']
+      d.local_id = rec.fetch('local_id', 'value' => '<unknown>')['value']
       d.owner = rec['owner'] || rec['source']
       d.content = rec
       d.txn = txn
@@ -124,6 +149,4 @@ class TransactionProcessor
     end
     success
   end
-  # rubocop:enable LineLength
 end
-# rubocop:enable MethodLength,AbcSize
