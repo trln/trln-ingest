@@ -1,5 +1,3 @@
-require 'rubyzip'
-
 # rubocop:disable MethodLength
 def unpack(input_file)
   files = []

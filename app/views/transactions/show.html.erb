@@ -1,8 +1,9 @@
 <p id="notice"><%= notice %></p>
 
-<div class="transaction header <%= @transaction.owner %>">
-  <h1><%= @transaction.owner %></h1>
+<div class="transaction header <%= @transaction.owner.downcase %>">
+  <h1><%= @transaction.owner.upcase %></h1>
   <h3>Tag: <%= @transaction.tag %></h3>
+  <h4>Documents: <span<%= @document_ids.length %></h4>
 </div>
 
 <p>
@@ -31,21 +32,27 @@
       <option value='<%= did.id %>'>
       <% end %>
    </datalist>
-  
    <p>Note that later transactions may update a document, so this list will change over time.</p>
  </div>
 
-  
-
-<p>
+  <p>
   <strong>Files:</strong>
    <ul>
      <% @transaction.files.each do |f| %>
       <li><%= File.basename(f) %> : <%= File.exist?(f) ? number_to_human_size(File.size(f)) : '(missing)' %></li>
+
      <% end %>
    </ul>
 </p>
+<% unless @transaction.error_files.empty? %>
 <div class="note">
-  Imagine there being something here about being able to view rejected documents and the reason for rejecting them.
+  <h1>Errors</h1>
+  <p>Not all records that were sumbitted could be ingested:</p>
+  <ul>
+    <% @transaction.errors.each do |err| %>
+      <li>[ <%= err['id'] %> ] : <%= err['msg'] %></li>
+    <% end %>
+  </ul>
 </div>
+ <% end %>
   <%= link_to 'Back', transactions_path %>

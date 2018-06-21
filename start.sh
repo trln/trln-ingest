@@ -2,16 +2,40 @@
 
 export RUBY_OPTS=''
 
-if [ "%1" == "-c" ]; then
-	rm log/devel*.log
-    rm log/pass*.log
+# Run as production by default; under Vagrant,
+# this will be reset to 'development' in the
+# .vagrant_rails_env
+export RAILS_ENV=production
+
+function is_vagrant() {
+    # the best generic test we can come up with for running under vagrant
+    grep -q '^vagrant:' /etc/passwd
+    [ "$?" == "0" ]
+}
+
+BIND_ALL_ADDRESSES='no'
+
+if is_vagrant; then
+    VAGRANT_ENV="./.vagrant_rails_env"
+    echo "Running under vagrant."
+    printf "\tload environment from $VAGRANT_ENV\n"
+    printf "\tbind rails port to 0.0.0.0 (bad in production)\n"
+    source "${VAGRANT_ENV}"
+    BIND_ALL_ADDRESSES='yes'
+fi
+
+if [ -z "$SECRET_KEY_BASE" ]; then
+    echo "SECRET_KEY_BASE is not set.  Will not continue"
+    exit 1
 fi
 
 # todo -- autostart solr
 # see rake tasks in the solrtask namespace
 # and read the documentation for the trln/solrtask gem
+SIDEKIQ_PID=$(pgrep -f sidekiq)
 
-if [ -z "$(pgrep -f sidekiq)" ]; then
+if [ -z "${SIDEKIQ_PID}" ]; then
+  printf "\tStarting sidekiq\n"
 	# start sidekiq as a daemon
 	bundle exec sidekiq -d -L log/sidekiq.log 2> log/sidekiq.err
 fi
@@ -29,17 +53,7 @@ if [ -z "$APP_POSTGRES_PASSWORD" ]; then
     export APP_POSTGRES_PASSWORD=$(printf "%q" $(cat .password))
 fi
 
-# since you're forwarding port 3000 in vagrant, you need to
-# bind to 0.0.0.0, but only then
-
-# this will exit successfully if there is a 'vagrant' user, which is
-# the best generic test we can come up with for running under vagrant
-grep -q '^vagrant:' /etc/passwd
-
-if [[ "$?" == "0" ]]; then
-    echo "Looks like we're running on a vagrant host"
-    echo "Binding to all interfaces for port forwarding. "
-    echo "If you are running in production or on a dedicated host, THIS IS NOT GOOD"
+if [ "$BIND_ALL_ADDRESSES" == "yes" ]; then 
     bundle exec rails s -b 0.0.0.0 -d
 else
    # in any other environment, don't do that.
