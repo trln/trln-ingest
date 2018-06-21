@@ -55,7 +55,7 @@ class SolrService
         data: File.read(filename)
       )
       count += 1
-      @client.commit if commit_interval > 0 && (qcount % commit_interval) == 0
+      @client.commit if commit_interval > 0 && ( count % commit_interval) == 0
     end
     @client.commit unless commit_interval == -1
   end
