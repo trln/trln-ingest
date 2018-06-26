@@ -21,6 +21,10 @@ class SolrService
     response = @client.select params: { q: '*:*', rows: 0 }
   end
 
+  def clusterstatus
+    @client.get('../admin/collections', params: { action: 'CLUSTERSTATUS' })
+  end
+
   def ping
     clients = Hash[self.class.config.url.map do |host|
       uri = URI.join(host, @collection)
@@ -29,7 +33,7 @@ class SolrService
     end]
     clients.each_with_object({}) do |(host, client), out|
       out[host] = client.get('admin/ping')
-    end
+    end.to_ostruct_deep
   end
 
   # Deletes documents from the index by ID.

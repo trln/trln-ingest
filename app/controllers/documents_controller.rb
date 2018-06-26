@@ -27,32 +27,22 @@ class DocumentsController < ApplicationController
     respond_to do |format|
       format.html do
         @content = @doc.content.to_ostruct_deep
-        @solr = begin
-                  fetch_solr(@doc.id)
-                rescue StandardError
-                  {}
-                end
-        @enriched = begin
-                      prepare_for_ingest(@doc.content)
-                    rescue StandardError
-                      {}
-                    end
-        @luke = begin
-                  fetch_luke_doc(@doc.id)
-                rescue StandardError
-                  {}
-                end
+        @solr = suppress(StandardError) { fetch_solr(@doc.id) } || {}
+        @enriched = suppress(StandardError) do
+          prepare_for_ingest(@doc.content)
+        end || {}
+        @luke = suppress(StandardError) { fetch_luke_doc(@doc.id) } || {}
         if @doc.deleted?
           flash[:notice] = 'This record has been deleted.'
-          unless @solr.empty?
+          if @solr.empty?
+            flash[:notice] << %q{It's not currently stored in Solr}
+          else
             delay = ((Time.current - @doc.updated_at) / 1.hour).round
             if delay > 1
-              flash[:alert] = 'This record still appears in Solr' unless @solr.empty?
+              flash[:alert] = 'This record still appears in Solr'
             else
               flash[:notice] << "\nIt should be removed from the index soon."
             end
-          else
-
           end
         end
         render 'show'

@@ -2,7 +2,10 @@ class DashboardController < ApplicationController
   include DashboardHelper
   def index
     logger.info('dashboard index')
-    @ping_results = SolrService.new.ping
+    solr = SolrService.new
+    @ping_results = solr.ping
+    @clusterstatus = solr.clusterstatus
+
     begin
       @sidekiq = { message: 'unable to query Sidekiq', running: false }
       @stats = Sidekiq::Stats.new
@@ -10,7 +13,7 @@ class DashboardController < ApplicationController
       sqprocs = Sidekiq::ProcessSet.new.size
       @sidekiq[:process_count] = sqprocs
       if sqprocs.zero?
-        @sidekiq[:message] = "Sidekiq does not appear to be running"
+        @sidekiq[:message] = 'Sidekiq does not appear to be running'
       else
         @sidekiq[:running] = true
       end
@@ -18,5 +21,10 @@ class DashboardController < ApplicationController
     rescue StandardError => e
       logger.error("whoa nellie, dashboard #{e.message}")
     end
+  end
+
+  def clusterstatus
+    client = SolrService.new.client
+    client.get('/admin/collections?action=clusterstatus')
   end
 end

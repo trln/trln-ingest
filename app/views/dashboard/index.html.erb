@@ -10,6 +10,8 @@
    <li class="list-group-item <%= solrstatus_to_bootstrap_item(results['status']) %>"><%= hostname %> : <%= results['status'] %>
   <% end %>
   </ul>
+  <p>Solr Cluster Status</p>
+  <pre><code><%= @clusterstaus.to_json %></code></pre>
  </div>
  <hr>
  <div class="background-jobs">
