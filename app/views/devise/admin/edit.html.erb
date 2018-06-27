@@ -37,16 +37,17 @@
   <% if current_user.admin? || current_user == @user %>
   <div class="actions">
     <%= f.submit "Update",class: 'btn btn-primary' %>
-    <% if @user == current_user %>
+  </div>
+  <% end %>
+
+<% end %>
+<% if @user == current_user %>
       <form id="new_token" method="post" action="<%= @user.id %>/new_token">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <button class="btn btn-warning">Generate New Access Token</button>
       </form> 
   <% end %>
-  </div>
-  <% end %>
 
-<% end %>
 
  
 

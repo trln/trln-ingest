@@ -1,6 +1,6 @@
 namespace :user do
   def vagrant?
-    @vagrant ||= system("grep -p '^vagrant:' /etc/passwd")
+    @vagrant ||= system("grep '^vagrant:' /etc/passwd")
   end
   desc 'List users'
   task list: :environment do
@@ -24,7 +24,7 @@ namespace :user do
     email = args.fetch(:email, 'admin@localhost')
     password = args.fetch(:password, 'spofford is installed')
     institution = args.fetch(:institution, 'trln')
-    if User.where(:admin).empty?
+    if User.where(admin:true).empty?
       User.create!(
         email: email, 
         password: password, 

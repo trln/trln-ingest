@@ -1,8 +1,9 @@
 <p id="notice"><%= notice %></p>
 
-<div class="transaction header <%= @transaction.owner %>">
-  <h1><%= @transaction.owner %></h1>
+<div class="transaction header <%= @transaction.owner.downcase %>">
+  <h1><%= @transaction.owner.upcase %></h1>
   <h3>Tag: <%= @transaction.tag %></h3>
+  <h4>Documents: <span><%= @document_ids.length || 0 %></span></h4>
 </div>
 
 <p>
@@ -14,14 +15,35 @@
   <strong>Status:</strong>
   <%= @transaction.status || "(not determined)" %>
 </p>
-<p>
+
  <% if @document_ids.empty? %>
-   The documents in this batch have all been updated since it was initially submitted.
-    Reindex is unavailable.
+	<p>There are currently no records associated with this batch, probably because:</p>
+	<% if @transaction.status == 'Ingesting' %>
+	 <p class="text-notice">
+	 	ingest is still ongoing.
+	 </p>
+	 <% elsif @transaction.status == 'Complete' %>
+	 <p class='text-notice'>
+   		the records have all been updated since it was initially submitted.
+   	</p>
+   	<% else %>
+   	 <p class="text-warning">
+   	 	... we're not sure, really.
+   	 </p>
+   	 <% end %>
+
  <% else %>
+  <% if %w[Complete Indexing].include?(@transaction.status) %>
+    <% if @transaction.status == 'Indexing' %>
+      <p class="text-warning">Current status is 'Indexing', which may mean another indexing process
+      	 is already running.  It would be a bad idea to reindex if so.  Only click this button if you're
+      	 sure.
+      	</p>
+      	<% end %>
    <%= form_for @transaction, :url => url_for(:action => 'start_index'), :method => :post do |f| %> 
     <% f.submit 'Reindex' %>
    <% end %>
+  <% end %>
 <% end %>
 </p>
   <div class="documents">
@@ -31,21 +53,27 @@
       <option value='<%= did.id %>'>
       <% end %>
    </datalist>
-  
    <p>Note that later transactions may update a document, so this list will change over time.</p>
  </div>
 
-  
-
-<p>
+  <p>
   <strong>Files:</strong>
    <ul>
      <% @transaction.files.each do |f| %>
       <li><%= File.basename(f) %> : <%= File.exist?(f) ? number_to_human_size(File.size(f)) : '(missing)' %></li>
+
      <% end %>
    </ul>
 </p>
+<% unless @transaction.error_files.empty? %>
 <div class="note">
-  Imagine there being something here about being able to view rejected documents and the reason for rejecting them.
+  <h1>Errors</h1>
+  <p>Not all records that were sumbitted could be ingested:</p>
+  <ul>
+    <% @transaction.errors.each do |err| %>
+      <li>[ <%= err['id'] %> ] : <%= err['msg'] %></li>
+    <% end %>
+  </ul>
 </div>
+ <% end %>
   <%= link_to 'Back', transactions_path %>

@@ -1,15 +1,24 @@
+# This is the default database.yml; it should not be used on a real
+# server, which should overwrite this file with one suited to the
+# environment under which it is running
 default: &default
   adapter: sqlite3
   pool: 5
   timeout: 5000
 
-development:
+# Some values that can be set are commented out
+# because, when running under Vagrant, we use UNIX socket connections
+# and 'ident' authorization, which requires no password
+development: &vagrant
   adapter: postgresql
   encoding: unicode
-  database: <%= ENV['APP_POSTGRES_USER'] || 'shrindex' %>
-  #pool: 5
-  #host: <%= ENV['APP_POSTGRES_HOST'] || 'localhost' %>
-  username: shrindex
+  database: <%= ENV['APP_POSTGRES_DB'] || 'shrindex' %>
+  pool: 5
+  username: <%= ENV['APP_POSTGRES_USER'] || 'set_env_vars' %>
+  # do not set host when running under vagrant
+  # host: <% ENV.fetch('APP_POSTGRES_HOST', 'localhost') %>
+  # postgres under vagrant also uses ident when hostnamne
+  # is not set
   #password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
 
 # Warning: The database defined as "test" will be erased and
@@ -21,9 +30,8 @@ test:
   encoding: unicode
   database: shrindex_testing
   pool: 1
-  username: shrindex
+  username: postgres 
   #password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
 
 production:
-  <<: *default
-  database: db/production.sqlite3
+  <<: *vagrant

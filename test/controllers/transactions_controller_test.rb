@@ -28,11 +28,11 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     ensure_redirected
   end
 
-  test "should show new (auth)" do
-    sign_in @user
-    get new_transaction_url
-    assert_response :success
-  end
+  # test "should show new (auth)" do
+  #  sign_in @user
+  #  get new_transaction_url
+  #  assert_response :success
+  # end
 
   test "should redirect from transaction (noauth)" do
     get transaction_url(@transaction)

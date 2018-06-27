@@ -1,10 +1,12 @@
 <%= content_for(:title, "TRLN Record : #{@doc.id}") %>
 <div class="main">
   <div class="header <%= @doc.owner %>">
-    <h1>ID: <%= @doc.id %></h1>
-    <h3>Local ID: <%= @doc.local_id %></h3>
+    <h1>ID: <%= @doc.id %><% if @doc.deleted? %>
+    <span class='deleted'>( deleted )</span><% end %></h1>
+    <h3>Local ID: <%= @doc.local_id %>
+  </h3>
   </div>
-  
+
   <%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary') %>
   <div class="metadata bibliographic">
     <dl>

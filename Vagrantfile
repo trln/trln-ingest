@@ -87,8 +87,20 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
 CREATE USER shrindex with PASSWORD '<%= password %>';
 ALTER USER shrindex CREATEDB;
 CREATE DATABASE shrindex WITH OWNER shrindex;
+CREATE DATABASE shrindex_testing WITH OWNER shrindex;
 TMPL
-    
+
+  if not File.exist?('.vagrant_rails_env')
+    require 'securerandom'
+    File.open(".vagrant_rails_env", "w") do |f|
+      f.write(%Q{export APP_POSTGRES_DB="shrindex"\n})
+      f.write(%Q{export APP_POSTGRES_USER="shrindex"\n})
+      # f.write(%Q{export APP_POSTGRES_HOST="localhost"\n})
+      f.write(%Q{export SECRET_KEY_BASE="#{SecureRandom.hex(32)}"\n})
+      f.write(%Q{# set this to production if you want less logging\n})
+      f.write(%Q{export RAILS_ENV=development\n})
+    end
+  end
 
   if not File.exist?("postgres-setup.sql") 
         password = dbpw

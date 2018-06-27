@@ -15,7 +15,7 @@ class Transaction < ApplicationRecord
   after_initialize :initialize_directories
 
   def initialize_directories(_ = {}, options = {})
-    owner ||= 'trln'
+    self.owner ||= 'trln'
     timestamp = created_at || Time.now
     base_dir = options[:base_dir] || Rails.application.config.stash_directory
     day_dir = timestamp.strftime("%Y#{File::SEPARATOR}%m#{File::SEPARATOR}%d")
@@ -42,10 +42,27 @@ class Transaction < ApplicationRecord
     self.files = stash_files
   end
 
+  def error_files
+    return [] unless files
+    files.grep(/error/i)
+  end
+
+  def errors
+    error_files.map do |filename|
+      if File.exist?(filename)
+        File.open(filename) do |f|
+          Argot::Reader.new(f).collect.to_a
+        end
+      else
+        { 'id' => 'N/A', 'msg' => "File #{filename} not found" }
+      end
+    end.flatten
+  end
+
   private
 
-  def absolutize_file(f)
-    File.join(stash_directory, File.basename(f)) if File.exist?(f)
+  def absolutize_file(filename)
+    File.join(stash_directory, File.basename(filename)) if File.exist?(filename)
   end
 
   def prepare_stash!
@@ -70,4 +87,5 @@ class Transaction < ApplicationRecord
                   timestamp.sec,
                   timestamp.nsec)
   end
+  # rubocop:enable MethodLength
 end

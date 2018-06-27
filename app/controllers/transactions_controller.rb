@@ -21,12 +21,6 @@ class TransactionsController < ApplicationController
     @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
   end
 
-  # GET /transactions/new
-  def new
-    owner = params[:owner] || 'ncsu'
-    @transaction = Transaction.new(owner: owner)
-  end
-
   # GET /transactions/1/edit
   def edit
     start_worker
@@ -39,12 +33,18 @@ class TransactionsController < ApplicationController
       return render(text: 'No content uploaded', status: 400)
     end
     @owner = params[:owner]
-    accept_zip(request.body, @owner) do |files|
-      @transaction = Transaction.new(owner: @owner, files: files)
-      @transaction.stash!
-      @transaction.save!
+    begin
+      accept_zip(request.body, @owner) do |files|
+        @transaction = Transaction.new(owner: @owner, files: files)
+        @transaction.stash!
+        @transaction.save!
+      end
+      start_worker
+    rescue ArgumentError => e
+      render status: 400, json: { status: 'JSON error', message: e.message }
+    rescue StandardError => e
+      render status: 500, json: { status: 'Unknown error', message: e.message }
     end
-    start_worker
   end
 
   # POST /ingest/:owner ( application/json )
@@ -55,10 +55,16 @@ class TransactionsController < ApplicationController
       return render(text: 'No content uploaded', status: 400)
     end
     files = [accept_json(request.body, @owner, operation: 'add')]
-    @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
-    @transaction.stash!
-    @transaction.save!
-    start_worker
+    begin
+      @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
+      @transaction.stash!
+      @transaction.save!
+      start_worker
+    rescue ArgumentError => e
+      render status: 400, json: { status: 'JSON error', message: e.message }
+    rescue StandardError => e
+      render status: 500, json: { status: 'Unknown error', message: e.message }
+    end
   end
 
   # POST /ingest/:owner w/ multipart mime type

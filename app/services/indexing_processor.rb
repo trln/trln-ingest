@@ -25,7 +25,7 @@ class IndexingProcessor
       @transaction = Transaction.find(@txn_id)
       @enumerator = Document.where(txn: options[:txn]).find_each
     else
-      raise 'Instantiate with array of document ids or a transaction id'
+      raise ArgumentError, 'Instantiate with array of document ids or a transaction id'
     end
   end
 
@@ -75,11 +75,16 @@ class IndexingProcessor
       end
     end
     logger.info "Wrote #{chunker.count} records to #{chunker.files.length} files"
-    SolrService.new('shared') do |solr|
+    SolrService.new('trlnbib') do |solr|
       # first process any deletes
-      solr.delete_by_ids(@deletes) unless @deletes.empty?
+      unless @deletes.empty?
+        solr.delete_by_ids(@deletes) unless @deletes.empty?
+        logger.info "Sent #{@deletes.length} delete(s) to Solr"
+      end
       # commit only after all the files are processed
-      solr.json_doc_update(chunker.files, chunker.files.length + 1)
+      if chunker.count > 0
+        solr.json_doc_update(chunker.files, chunker.files.length + 1)
+      end
     end
     logger.info 'Finished indexing'
     begin
