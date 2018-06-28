@@ -108,7 +108,7 @@ class TransactionProcessor
               'other' => []
             }
           end
-          valid = @validator.valid?(rec) do |results|
+          valid = @validator.valid?(rec) do |rec, results|
             errdoc = {
               id: rec.fetch('id', '<unknown id>'),
               msg: results.first_error,
