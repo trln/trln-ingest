@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   root to: 'transactions#index'
 
   get '/transaction/:id' => 'transactions#show'
+  get '/transaction/:id/file/:filename' => 'transactions#filedownload'
+
   delete '/transaction/:id' => 'transactions#destroy'
 
   post '/index/:id', to: 'transactions#start_index', as: 'reindex'

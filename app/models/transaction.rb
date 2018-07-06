@@ -14,6 +14,12 @@ class Transaction < ApplicationRecord
 
   after_initialize :initialize_directories
 
+  after_create_commit :symlink_tx_dir
+
+  after_update_commit :symlink_tx_dir
+
+  after_destroy_commit :remove_tx_dir
+
   def initialize_directories(_ = {}, options = {})
     self.owner ||= 'trln'
     timestamp = created_at || Time.now
@@ -47,19 +53,53 @@ class Transaction < ApplicationRecord
     files.grep(/error/i)
   end
 
-  def errors
+  def record_errors
+    errors_display = []
+    total = 0
     error_files.map do |filename|
       if File.exist?(filename)
         File.open(filename) do |f|
-          Argot::Reader.new(f).collect.to_a
+          file_errors = 0
+          Argot::Reader.new(f).each do |err|
+            total += 1
+            file_errors += 1
+            errors_display << err unless file_errors > 500
+          end
         end
+        errors_display
       else
         { 'id' => 'N/A', 'msg' => "File #{filename} not found" }
       end
     end.flatten
   end
 
+  def archive!
+    archive_file = Spofford::ZipHandler.compress_transaction(self)
+    if archive_file
+      remove_tx_dir
+      return update!(status: 'Archived', files: [archive_file])
+    end
+    false
+  end
+
+  def find_symlink_path
+    File.join(File.expand_path('..', stash_directory), id.to_s)
+  end
+
   private
+
+  def symlink_tx_dir
+    if File.directory?(stash_directory)
+      id_path = find_symlink_path
+      Rails.logger.warn("hey this is the symlink thing #{id_path}")
+      File.symlink(stash_directory, id_path) unless File.symlink?(id_path)
+    end
+  end
+
+  def remove_tx_dir
+    FileUtils.rm_rf(stash_directory)
+    FileUtils.rm(find_symlink_path) if File.symlink?(find_symlink_path)
+  end
 
   def absolutize_file(filename)
     File.join(stash_directory, File.basename(filename)) if File.exist?(filename)

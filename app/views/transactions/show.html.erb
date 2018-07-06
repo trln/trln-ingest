@@ -14,6 +14,11 @@
 <p>
   <strong>Status:</strong>
   <%= @transaction.status || "(not determined)" %>
+  <% if @transaction.status == 'Archived' %>
+  <p class='text-notice'>
+    This transaction has been archived, prior to eventual deletion.
+  </p>
+  <% end %>
 </p>
 
  <% if @document_ids.empty? %>
@@ -24,7 +29,8 @@
 	 </p>
 	 <% elsif @transaction.status == 'Complete' %>
 	 <p class='text-notice'>
-   		the records have all been updated since it was initially submitted.
+   		the records have all been updated since it was initially submitted,
+      <span class='small'>or they all had errors that prevented ingest.</span>
    	</p>
    	<% else %>
    	 <p class="text-warning">
@@ -60,8 +66,14 @@
   <strong>Files:</strong>
    <ul>
      <% @transaction.files.each do |f| %>
-      <li><%= File.basename(f) %> : <%= File.exist?(f) ? number_to_human_size(File.size(f)) : '(missing)' %></li>
 
+      <li><%if  File.exist?(f) %>
+        <%= link_to(File.basename(f), controller: 'transactions', action: 'filedownload', id: @transaction.id, filename: File.basename(f) ) %> 
+          <%= File.basename(f) %> <%= number_to_human_size(File.size(f)) %>
+        <% else %>
+         <%= File.basename(f) %> '(missing)' %>
+         <% end %>
+       </li>
      <% end %>
    </ul>
 </p>
@@ -70,7 +82,7 @@
   <h1>Errors</h1>
   <p>Not all records that were sumbitted could be ingested:</p>
   <ul>
-    <% @transaction.errors.each do |err| %>
+    <% @transaction.record_errors.each do |err| %>
       <li>[ <%= err['id'] %> ] : <%= err['msg'] %></li>
     <% end %>
   </ul>

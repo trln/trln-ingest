@@ -3,6 +3,7 @@ require 'spofford'
 # Controller for managing transactions
 class TransactionsController < ApplicationController
   include Spofford::IngestHelper
+
   protect_from_forgery except: %i[ingest_json ingest_zip]
   acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
 
@@ -21,7 +22,7 @@ class TransactionsController < ApplicationController
     @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
   end
 
-  # GET /transactions/1/edit
+  # GET /transactions/:id/edit
   def edit
     start_worker
   end
@@ -69,9 +70,21 @@ class TransactionsController < ApplicationController
 
   # POST /ingest/:owner w/ multipart mime type
   def upload
-    logger.debug("here we are in upload with content type " + request.headers['Content-Type'])
     @owner = params[:owner]
     @package = params[:package]
+  end
+
+  # GET :id/filedownload/:filename
+  def filedownload
+    @transaction = Transaction.find(params[:id])
+    name = helpers.filename_for_download
+    path = helpers.path_for_download(name)
+    return render(text: 'File not found', status: 404) unless File.exist?(path)
+    type = helpers.mime_type_from_filename(name)
+    logger.debug("Download -- setting #{name} as #{type}")
+    # our 'json' files are streaming format, which breaks most browser
+    # parsers, so force download
+    send_file(path, filename: name, disposition: 'attachment', type: type)
   end
 
   def ingest_form
