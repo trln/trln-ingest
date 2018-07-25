@@ -21,7 +21,7 @@ class TransactionProcessor
   def run
     logger.debug "Start job for #{@txn}"
     @txn.update(status: 'Ingesting')
-    logger.debug "[txn:#{txn.id}}] files in #{txn.stash_directory}"
+    logger.info "[txn:#{txn.id}}] files in #{txn.stash_directory}"
     process_deletes
     set_up
     Dir.glob("#{txn.stash_directory}/add*.json").each do |update_file|

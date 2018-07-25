@@ -167,17 +167,63 @@ WHERE
 the (JSON-typed) 'content' field  for all documents where \[this isbn\] is in
 the array of the `isbn` field).  
 
-Currently, we are *not* indexing any of the fields, but ISBN would be a natural one to look at.
+Currently, we are *not* indexing any of the fields inside Postgres, but ISBN
+would be a natural one to look at.
 
-### Testing -- TODO 
+### Environment Setup
 
-Nothing's really been set up for testing yet.
+When running under Vagrant, things should Just Work, but there are a number of
+environment variables that impact how this application works:
+
+|Variable  | Default   | Used in File | Notes
+|----------|:---------:|------|------|
+| `DB_ADAPTER` | `postgres` |  `config/database.yml` | see above
+| `DB_HOST`   | (not set)   | `config/databse.yml` | hostname to connect to (assumes standard port 5432);  if not set, assumes connection to DB running on the same machine via UNIX socket | 
+| `DB_NAME` | `shrindex` | `config/database.yml` | the database name
+| `DB_USER` | `set_env_vars` | `config/database.yml` | username
+| `DB_PASSWORD` | (not set) | `config/database.yml` | default PostgreSQL setup uses 'ident' auth from localhost, which requires this to not be set.
+| `TRANSACTION_FILES_BASE` | (not set) | `config/initializers/spofford.yml` | base directory for ingest packages and error messages for any given ingest package.  Will be created if it does not exist. |
+| `SECRET_KEY_BASE` | (not set)  | n/a | Used to secure sessions, and also by Devise |
+
+The Vagrant provisioner will create `.vagrant_rails_env`, which will be read by
+`start.sh`, providing defaults for all necessary variable
+
+The default `start.sh` script sets the variables to appropriate values when
+running under Vagrant (no hostname, user 'shrindex' , no password).
+
+Production or shared deployments will need to set these variables
+elsewhere, e.g. if you plan to run the application via `systemd` unit files,
+you would typically store the values in `/etc/default/[service name]` and then
+make sure that your unit file has the following two lines in the `[Service]`
+stanza:
+
+```
+# assuming service name == 'trln-ingest'
+EnvrironmentFile=/etc/default/trln-ingest 
+PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_STORAGE_BASE
+```
+
+You may also want to create a `config/database.yml` and `config/solr.yml` for
+your deployment environment and copy those into your deployment directory
+(capistrano, the tool we are using, has facilities for doing this).
+
+### Testing
+
+Tests should be run from inside the VM, if possible, but if you are not doing
+so and are willing to set up PostgreSQL in teh right way (see the provisioning
+scripts in `Vagrantfile`, you can run them from outside.  By default, testing
+will create a database called 'shrindex_testing' which will be deleted at the
+end of the run.  Ensure that the database user in the `test` environment has
+the requisite permissions.
+
+    $ bundle exec rake test
 
 ### Sample Package Ingest Command
 
-Install [spofford-client](/trln/spofford-client), or if you like to do things manually:
+Install [spofford-client](/trln/spofford-client), or if you like to do things
+manually:
 
-   $ curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3001/ingest/unc
+    $ curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3001/ingest/unc
 
 (-v is optional, but can help to read what's going on in case anything fails)
 If you have a `.zip` file, change "application/json" to "application/zip".

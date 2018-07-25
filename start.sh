@@ -1,9 +1,22 @@
 #!/bin/sh
 
+# Startup script for both the rails application and sidekiq;
+# INTENDED TO SIMPLIFY RUNNING UNDER VAGRANT
+# it can be used for shared deployments, but I 
+# STRONGLY DISCOURAGE doing so.
+# Provisioning in a production environment should generally
+# use a tool such as Capistrano along with a configuration management
+# system that correctly sets up the environment.
+
 export RUBY_OPTS=''
 
+# Primary difference in the default setup between production and development
+# is amount of logging and whether the application will recompile assets and
+# reload ruby classes.  The same database and solr hosts are used, unless
+# you've overriden `database.yml` and `solr.yml` in the `config` directory.
+
 # Run as production by default; under Vagrant,
-# this will be reset to 'development' in the
+# this can be reset to 'development' in the
 # .vagrant_rails_env
 export RAILS_ENV=production
 
@@ -29,6 +42,11 @@ if [ -z "$SECRET_KEY_BASE" ]; then
     exit 1
 fi
 
+if [ "$RAILS_ENV" == 'production' ]; then
+  bundle exec rake assets:precompile
+fi
+
+
 # todo -- autostart solr
 # see rake tasks in the solrtask namespace
 # and read the documentation for the trln/solrtask gem
@@ -40,18 +58,12 @@ if [ -z "${SIDEKIQ_PID}" ]; then
 	bundle exec sidekiq -d -L log/sidekiq.log 2> log/sidekiq.err
 fi
 
-# environment vars may be established by a calling script, e.g. when running as a service
-# use local defintions unless that's happened.
-
-if [ -z "$APP_POSTGRES_HOST" ]; then
-    export APP_POSTGRES_HOST='localhost'
+if [ -z "$DB_USER" ]; then
+  echo "DB_USER is unset, this is no good"
+  exit 1
 fi
 
-if [ -z "$APP_POSTGRES_PASSWORD" ]; then
-    # .password file is created during vagrant installation
-    # if that doesn't exist, then ... what else is there to do?
-    export APP_POSTGRES_PASSWORD=$(printf "%q" $(cat .password))
-fi
+export DB_NAME DB_USER SECRET_KEY_BASE
 
 if [ "$BIND_ALL_ADDRESSES" == "yes" ]; then 
     bundle exec rails s -b 0.0.0.0 -d

@@ -8,7 +8,7 @@ class TransactionsController < ApplicationController
   acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
 
   before_action :authenticate_user!
-  before_action :set_transaction, only: %i[show edit update destroy]
+  before_action :set_transaction, only: %i[show edit update destroy archive]
 
   # GET /transactions
   # GET /transactions.json
@@ -20,11 +20,16 @@ class TransactionsController < ApplicationController
   # GET /transactions/1.json
   def show
     @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
+    @job_status = helpers.sidekiq_job_status(@transaction.id)
   end
 
   # GET /transactions/:id/edit
   def edit
     start_worker
+  end
+
+  def archive
+    @transaction.archive!
   end
 
   # POST /ingest/:owner ( application/zip )

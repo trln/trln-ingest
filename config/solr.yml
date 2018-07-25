@@ -1,3 +1,6 @@
+# url is an array of Solr URLs; most Solr operations
+# will take a random URL from among those provided.
+# see app/services/solr_service.rb
 common:  &common
   url: 
     - http://localhost:8983/solr/

@@ -8,51 +8,27 @@
   </div>
 
   <%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary') %>
-  <div class="metadata bibliographic">
-    <dl>
-      <dt>Title</dt>
-       <dd>
-        <dl>
-          <dt>Main</dt>
-          <dd><%= @content.title.main[0].value %></dd>
-        </dl>
-       </dd>
-      <% if @content.authors and @content.authors.main %>
-        <dt>Author(s)</dt>
-          <% @content.authors.main.each do |author| %>
-              <dd><%= author.name %></dd>
-          <% end %>
+  <div class="card metadata bibliographic">
+    <h3 class="card-title"><%= main_title(@content) %></h3>
+    <h5 class="card-subtitle text-muted"><%= @content.resource_type.first %></h5>
+    <div class+"card-body">
+      <% if @content.statement_of_responsibility && @content.statement_of_responsibility.try(:first) %>
+        <div class="text-muted">Statement of Responsibility: <%= @content.statement_of_responsibility.map(&:value).join(', ') %></div>
+      <% end %>
+      <% if @content.publisher && @content.publisher.try(:first) %>
+      <div class="text-muted">Publisher: <%= @content.publisher.join(", ") %></div>
       <% end %>
       <% if @content.isbn %>
-      <dl>
-        <dt>ISBN</dt>
-        <% @content.isbn.each do |isbn| %>
-          <dd><%= isbn %></dd>
-         <% end %>
-      </dl>
+        <div class='text-muted'>ISBN: <%= isbns(@content) %></div>
       <% end %>
-
-      <% if @doc.respond_to?(:virtual_collection) && @doc.virtual_collection.first %>
-       <dl>
-         <dt>Collections</dt>
-             <% @doc.virtual_collection.each do |coll| %>
-             <dd>>%= coll %></dd>
-             <% end %>
-       </dl>
-       <% end %>
-
-    <% if @content.subjects %>
-
-            <dt>Subjects</dt>
-            <dd>
-              <ul>
-                <% @content.subjects.each do |subject| %>
-                <li class="subject"><%= subject %></li>
-                     <% end %>
-              </ul>
-            </dd>
-    <% end %>
-    </dl>
+      <% if @content.virtual_collection && @content.virtual_collection.try(:first) %>
+      <ul>
+        <% @content.virtual_collection.each do |coll| %>
+        <li><%= coll %></li>
+        <% end %>
+      </ul>
+      <% end %>
+    </div>
  
   <div id="argot-views">
     <h1>Document Views</h1>
