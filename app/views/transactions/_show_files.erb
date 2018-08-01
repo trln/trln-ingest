@@ -18,13 +18,14 @@
             </ul>
           <% end %>
         <% else %>
-         <%= File.basename(f) %> '(missing)' %>
+         <%= File.basename(f) %> '(missing)'
          <% end %>
        </li>
      <% end %>
    </ul>
  </div>
 </div>
+
 <% unless @transaction.error_files.empty? %>
 <div class="card">
   <div class="card-body">
