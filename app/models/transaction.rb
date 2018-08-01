@@ -89,11 +89,9 @@ class Transaction < ApplicationRecord
   private
 
   def symlink_tx_dir
-    if File.directory?(stash_directory)
-      id_path = find_symlink_path
-      Rails.logger.warn("hey this is the symlink thing #{id_path}")
-      File.symlink(stash_directory, id_path) unless File.symlink?(id_path)
-    end
+    return unless File.directory?(stash_directory)
+    id_path = find_symlink_path
+    File.symlink(stash_directory, id_path) unless File.symlink?(id_path)
   end
 
   def remove_tx_dir

@@ -7,11 +7,11 @@
 
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
-  </head>
-  <header>
+</head>
+  <body>
+    <header>
       <h1><%= yield :title %></h1>
   </header>
-  <body>
     <%= render partial: 'devise/sessions/logout' %>
     <%= render partial: 'notifications' %>
    <div id="main">

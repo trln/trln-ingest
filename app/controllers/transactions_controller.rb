@@ -21,6 +21,8 @@ class TransactionsController < ApplicationController
   def show
     @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
     @job_status = helpers.sidekiq_job_status(@transaction.id)
+    @zip_entries = Hash[@transaction.files.select { |f| File.exist?(f) && File.extname(f) == '.zip' }
+                               .map { |f| [f, helpers.zip_contents(f)] }]
   end
 
   # GET /transactions/:id/edit
@@ -86,7 +88,7 @@ class TransactionsController < ApplicationController
     path = helpers.path_for_download(name)
     return render(text: 'File not found', status: 404) unless File.exist?(path)
     type = helpers.mime_type_from_filename(name)
-    logger.debug("Download -- setting #{name} as #{type}")
+    type ||= request.format
     # our 'json' files are streaming format, which breaks most browser
     # parsers, so force download
     send_file(path, filename: name, disposition: 'attachment', type: type)

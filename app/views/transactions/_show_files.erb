@@ -1,0 +1,41 @@
+<div class="card">
+   <div class="card-body">
+    <h3 class="card-title">Files</h3>
+    <ul class="list-group list-group-flush">
+     <% @transaction.files.each do |f| %>
+
+      <li class="list-group-item"><%if  File.exist?(f) %>
+        <%= link_to(File.basename(f), controller: 'transactions', action: 'filedownload', id: @transaction.id, filename: File.basename(f) ) %> 
+          <%= number_to_human_size(File.size(f)) %>
+          <% if @zip_entries[f] %>
+            <span class="badge badge-info">Zip contents</span>
+            <ul>
+              <% @zip_entries[f].each do |e| %>
+               <li>
+                <%= File.basename(e[:name]) %> <%= number_to_human_size(e[:size]) %>
+              </li>
+              <% end %>
+            </ul>
+          <% end %>
+        <% else %>
+         <%= File.basename(f) %> '(missing)' %>
+         <% end %>
+       </li>
+     <% end %>
+   </ul>
+ </div>
+</div>
+<% unless @transaction.error_files.empty? %>
+<div class="card">
+  <div class="card-body">
+    <h3 class="card-title">Errors</h3>
+    <h4 class="card-subtitle text-muted">Not all records that were sumbitted could be ingested</h4>
+  
+  <ul class="list-group list-group-flush">
+    <% @transaction.record_errors.each do |err| %>
+      <li class="list-group-item">[ <%= err['id'] %> ] : <%= err['msg'] %></li>
+    <% end %>
+  </ul>
+  </div>
+</div>
+ <% end %>

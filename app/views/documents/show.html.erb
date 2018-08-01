@@ -1,17 +1,23 @@
 <%= content_for(:title, "TRLN Record : #{@doc.id}") %>
 <div class="main">
   <div class="header <%= @doc.owner %>">
-    <h1>ID: <%= @doc.id %><% if @doc.deleted? %>
-    <span class='deleted'>( deleted )</span><% end %></h1>
-    <h3>Local ID: <%= @doc.local_id %>
-  </h3>
+      <h1>ID: <%= @doc.id %><% if @doc.deleted? %>
+      <span class='deleted'>( deleted )</span><% end %></h1>
+      <h3>Local ID: <%= @doc.local_id %></h3>
   </div>
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title"><%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary text-white') %></h3>
+      </div>
+    </div>
 
-  <%= link_to( "View Transaction", @doc.txn, class: 'btn btn-primary') %>
   <div class="card metadata bibliographic">
-    <h3 class="card-title"><%= main_title(@content) %></h3>
-    <h5 class="card-subtitle text-muted"><%= @content.resource_type.first %></h5>
-    <div class+"card-body">
+
+    <div class="card-body">
+      <h3 class="card-title"><%= main_title(@content) %></h3>
+      <h5 class="card-subtitle text-muted"><%= @content.resource_type.first %></h5>
+    
+
       <% if @content.statement_of_responsibility && @content.statement_of_responsibility.try(:first) %>
         <div class="text-muted">Statement of Responsibility: <%= @content.statement_of_responsibility.map(&:value).join(', ') %></div>
       <% end %>
@@ -29,57 +35,66 @@
       </ul>
       <% end %>
     </div>
+  </div>
  
-  <div id="argot-views">
-    <h1>Document Views</h1>
+  <div class="card" id="argot-views">
+    <div class="card-body">
+      <h3 class="card-title">Document Views</h3>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#argot" aria-expanded="false" aria-controls="argot">
       <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       Argot
     </button>
+  </li>
+      <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#enriched-view" aria-expanded="false" aria-controls="enriched-view">
       <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       Enriched Argot (what Solr ingests)
     </button>
+  </li>
+        <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#solr-view" aria-expanded="false" aria-controls="solr-view">
       <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       Solr Document
-    </button>
-
+    </button></li>
+    <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target='#luke-view' aria-expanded='false' aria-controls='luke-view'>
       <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       Advanced Solr View
     </button>
+  </li>
 
+    <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="argot enriched-view solr-view luke-view">
      <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       All
     </button>
+  </li>
+
     <div id="argot" class="collapse multi-collapse">
-      <div class="card card-body">
-        <h1>Argot (<%= link_to('Link', :format => :json) %>)</h1>
-        <span class='detail'>Currently Stored</span>
-        <code><pre><%= pretty_json(@doc.content) %></pre></code>
-      </div>
+      <h3>Argot (<%= link_to('download', controller: 'documents', action: 'show', id: @doc.id, format: :json) %>)</h3>
+      <span class='detail'>Currently Stored</span>
+      <code><pre><%= pretty_json(@doc.content) %></pre></code>
     </div>
+  
+  </div>
 
     <div id="enriched-view" class="collapse multi-collapse">
-      <div class="card card-body">
-        <h1>Enriched Content (what gets sent to Solr)</h1>
-        <span class="detail">Generated at Indexing time</span>
-        <code><pre><%= pretty_json(@enriched) %></pre></code>
-      </div>
+      <h3>Enriched Content (what gets sent to Solr)</h3>
+      <span class="detail">Generated at Indexing time</span>
+      <code><pre><%= pretty_json(@enriched) %></pre></code>
     </div>
     
 
     <div id="solr-view" class="collapse multi-collapse">
       <h1>Current Solr Content</h1>
       <span class='detail'>Data currently in shared index</span>
-      <div class="card card-body">
         <code><pre><%= pretty_json(@solr) %></pre></code>
       </div>
     </div>
@@ -87,9 +102,7 @@
     <div id="luke-view" class="collapse multi-collapse">
       <h1>Advanced Solr Index View</h1>
       <span class='detail'>Analyzed field content in Solr index</span>
-      <div class="card card-body">
         <code><pre><%= pretty_json(@luke) %></pre></code>
-      </div>
     </div>
 
   </section>

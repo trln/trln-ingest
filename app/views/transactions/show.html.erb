@@ -1,110 +1,50 @@
-<p id="notice"><%= notice %></p>
-
+<%= content_for(:title, "TRLN Ingest Package : #{@transaction.id}") %>
 <div class="transaction header <%= @transaction.owner.downcase %>">
   <h1><%= @transaction.owner.upcase %></h1>
   <h3>Tag: <%= @transaction.tag %></h3>
   <h4>Documents: <span><%= @document_ids.length || 0 %></span></h4>
 </div>
 
-<p>
-  <strong>Initiated By:</strong>
-  <%= @transaction.user || "unknown" %> at <%= local_time @transaction.created_at %>
-</p>
-<div class=card">
-  <h2 class="card-title">Status: <span class="badge badge-<%= status_label_class(@transaction) %>"><%= @transaction.status || "(??)" %></span></h2>
-  <h3 class="card-subtitle text-muted"> <%= status_description(@transaction) %></h3>
-  <% if !['Complete', 'Archived'].include?( @transaction.status ) %>
-    <h3 class="card-subtitle text-muted"><%= @job_status %></h3>
-  <% end %>
-  <div class="card-body">
-    <% unless @document_ids.empty? %>
+<div class="row">
+  <div class="col-sm-12">
+  <div class="card center">
+    <div class="card-header">
+        Initiator: <%= @transaction.user || "unknown" %> at <span class="text-muted"><%= local_time @transaction.created_at %></span>
+        Status: <span class="badge badge-<%= status_label_class(@transaction) %>"><%= @transaction.status || "(??)" %></span>
+      </div>
+      <div class="card-body">
+          <h3 class="text-muted"><%= status_description(@transaction) %></h3>
+          <% unless @document_ids.empty? %>
+          <hr>
+          <%= render "show_documents" %>
+          <hr>
       <div class="txn-actions">
-      <% if %w[Complete Indexing].include?(@transaction.status) %>
-      <% if @transaction.status == 'Indexing' %>
-        <p class="text-warning">Current status is 'Indexing', which may mean another indexing process
-           is already running.  It would be a bad idea to reindex if so.  Only click this button if you're
-          sure.
-          </p>
-        <% else %>
-          <%= form_for @transaction, url: url_for(action: 'archive'), method: :post do |f| %>
-            <% f.submit 'Archive', class: 'btn btn-outline-secondary', title: 'compacts the files' %>
+        <% if %w[Complete Indexing].include?(@transaction.status) %>
+          <% if @transaction.status == 'Indexing' %>
+            <p class="text-warning">Current status is 'Indexing', which may mean another indexing process
+              is already running.  It would be a bad idea to reindex if so.  Only click this button if you're
+                sure.
+            </p>
+          <% else %>
+            <%= form_for @transaction, url: url_for(action: 'archive'), method: :post do |f| %>
+                  <% f.submit 'Archive', class: 'btn btn-outline-secondary', title: 'compacts the files' %>
+                <% end %>
+          <% end %>
+          <%= form_for @transaction, :url => url_for(:action => 'start_index'), :method => :post do |f| %> 
+            <% f.submit 'Reindex', class: 'btn btn-outline-warning' %>
           <% end %>
       <% end %>
-        <%= form_for @transaction, :url => url_for(:action => 'start_index'), :method => :post do |f| %> 
-          <% f.submit 'Reindex', class: 'btn btn-outline-warning' %>
-        <% end %>
       </div>
-      <% end %>
+    <% else %>
+      <%= render partial: "show_nodocs" %>
     <% end %>
+        </div>
+    </div>
   </div>
 </div>
 
+ 
+ <%= render "show_files" %>
 
- <% if @document_ids.empty? %>
- <div class="card">
-  <h2 class="card-title">Empty Batch</h2>
-   <div class="card-body">
-	  <div class="card-text">
-      <span class="text-muted">There are currently no records associated with this batch, probably because:</span>
-      <ul>
-	   <% if @transaction.status == 'Ingesting' %>
-	   <li class="text-notice">Ingest is still ongoing</li>
-	 <% elsif @transaction.status == 'Complete' %>
-	   <li class="text-notice">the records have all been updated since it was initially submitted, <strong>OR</strong>
-       <ul>
-          <li class="small">they all had errors that prevented ingest.</li>
-        </ul>
-      </li>
-   	
-   	<% else %>
-   	 <li class="text-warning">
-   	 	... we're not sure, really.
-   	 </li>
-   	 <% end %>
-    </ul>
 
- <% else %>
-  
-<% end %>
-
-  <div class="form-group">
-    <label for="nosubmit">View Records</label>
-    <input list="document_ids" name='nosubmit' id='nosubmit' placeholder="record unique ID" onchange='window.location="<%= url_for(controller:'documents', trailing_slash: 1) %>" + this.value;'></label>
-    <datalist id='document_ids'>
-      <% @document_ids.each do |did| %>
-      <option value='<%= did.id %>' />
-      <% end %>
-   </datalist>
- </div>
-
-  <div class="card">
-   <h3 class="card-title">Files</h3>
-   <div class="card-body">
-    <ul class="list-group list-group-flush">
-     <% @transaction.files.each do |f| %>
-
-      <li class="list-group-item"><%if  File.exist?(f) %>
-        <%= link_to(File.basename(f), controller: 'transactions', action: 'filedownload', id: @transaction.id, filename: File.basename(f) ) %> 
-          <%= number_to_human_size(File.size(f)) %>
-        <% else %>
-         <%= File.basename(f) %> '(missing)' %>
-         <% end %>
-       </li>
-     <% end %>
-   </ul>
- </div>
-</div>
-<% unless @transaction.error_files.empty? %>
-<div class="card">
-  <h3 class="card-title">Errors</h3>
-  <h4 class="card-subtitle text-muted">Not all records that were sumbitted could be ingested</h4>
-  <div class="card-body">
-  <ul class="list-group list-group-flush">
-    <% @transaction.record_errors.each do |err| %>
-      <li class="list-group-item">[ <%= err['id'] %> ] : <%= err['msg'] %></li>
-    <% end %>
-  </ul>
-  </div>
-</div>
- <% end %>
-  <%= link_to 'Back', transactions_path %>
+<%= link_to 'Back', transactions_path %>

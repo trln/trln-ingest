@@ -18,7 +18,8 @@ class DocumentsController < ApplicationController
       logger.debug "here's the doc: #{@doc}"
       show
     rescue ActiveRecord::RecordNotFound
-      not_found
+      flash[:alert] = "Record #{params[:id]} not found"
+      redirect_to(controller: 'transactions', action: 'index')
     end
   end
 

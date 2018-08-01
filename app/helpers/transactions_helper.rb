@@ -35,7 +35,7 @@ module TransactionsHelper
   def mime_type_from_filename(name)
     return nil unless name
     ext = File.extname(name)[1..-1]
-    Mime::Type.lookup_by_extension(ext)    
+    Mime::Type.lookup_by_extension(ext)
   end
 
   def sidekiq_job_status(id)
@@ -52,6 +52,18 @@ module TransactionsHelper
       return 'Retrying' if job.args == [id]
     end
     'Done'
+  end
+
+  def zip_contents(zipfile)
+    File.open(zipfile) do |f|
+      Zip::File.open(f) do |zip|
+        zip.entries.map do |e|
+          { name: e.name, size: e.size }
+        end
+      end
+    end
+  rescue IOError
+    []
   end
 
   def status_label_class(txn)

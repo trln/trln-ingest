@@ -19,7 +19,7 @@ class TransactionProcessor
   end
 
   def run
-    logger.debug "Start job for #{@txn}"
+    logger.info "Start job for #{@txn}"
     @txn.update(status: 'Ingesting')
     logger.info "[txn:#{txn.id}}] files in #{txn.stash_directory}"
     process_deletes
@@ -69,33 +69,38 @@ class TransactionProcessor
     deletables
   end
 
+  def read_deletes(df)
+    if df.end_with?('.json')
+      read_json_deletes(df)
+    else
+      read_test_deletes(df)
+    end
+  end
+
+  def delete_by_ids(chunk)
+    count = 0
+    Document.transaction do 
+      Document.where(id: chunk).each do |goner|
+        goner.update(txn: @txn, deleted: true)
+        count += 1
+      end
+    end
+    count
+  end
+
   def process_deletes
     logger.info("[txn:#{@txn.id}] Looking for delete files")
-    Dir.glob("#{txn.stash_directory}/delete*").each do |df|
-      deletables = if df.end_with?('.json')
-                     read_json_deletes(df)
-                   else
-                     read_test_deletes(df)
-                   end
-
-      goners = deletables.map do |doc_id|
-        begin
-          Document.find(doc_id)
-        rescue ActiveRecord::RecordNotFound
-          logger.warn "Found ID #{doc_id} to delete, not found"
-        end
-      end.select(&:itself)
+    total = 0
+    files = Dir.glob("#{txn.stash_directory}/delete*").each do |df|
+      deletables = read_deletes(df)
       count = 0
-      Document.transaction do
-        goners.each do |goner|
-          logger.info "Marking #{goner.id} as deleted"
-          goner.update(txn: @txn, deleted: true)
-          count += 1
-        end
+      deletables.each_slice(500) do |chunk|
+        count += delete_by_ids(chunk)
       end
-      logger.info "Processed #{count} deletes [ #{df} ]"
-    end
-    logger.info 'Finished processing deletes'
+      total += count
+      logger.info "Finished processing #{count} deletes [ #{df} ]"
+    end.length
+    logger.info("Processed #{total} deletes in #{files} file(s)")
   end
 
   def process_file(filename)

@@ -1,14 +1,36 @@
 #!/bin/sh
 
 # Startup script for both the rails application and sidekiq;
-# INTENDED TO SIMPLIFY RUNNING UNDER VAGRANT
-# it can be used for shared deployments, but I 
-# STRONGLY DISCOURAGE doing so.
+# INTENDED TO SIMPLIFY RUNNING UNDER VAGRANT, DO NOT USE
+# IN PRODUCTION
+
 # Provisioning in a production environment should generally
 # use a tool such as Capistrano along with a configuration management
 # system that correctly sets up the environment.
 
 export RUBY_OPTS=''
+
+export SOLR_DIR=solr-dir/solr-7.3.1
+
+if [ -d "$SOLR_DIR" ]; then
+  echo "Ensuring Solr is running"
+  SOLR_BIN="$SOLR_DIR/bin/solr"
+  if [ -e "$SOLR_BIN" ]; then
+    echo "Hey I found solr binary at $SOLR_BIN"
+solr-dir/solr-7.3.1/bin/solr status
+    RESULT=`$SOLR_BIN status`
+    STATUS=$?
+    if [ "$STATUS" != "0" ]; then
+      $SOLR_BIN start -c
+    else
+      echo "Solr appears to be running already, good."
+    fi
+  fi
+fi
+
+
+
+
 
 # Primary difference in the default setup between production and development
 # is amount of logging and whether the application will recompile assets and
