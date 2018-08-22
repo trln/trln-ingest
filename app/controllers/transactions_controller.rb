@@ -40,10 +40,10 @@ class TransactionsController < ApplicationController
       logger.info('Received empty body')
       return render(text: 'No content uploaded', status: 400)
     end
-    @owner = params[:owner]
+    @owner = params[:owner].downcase
     begin
       accept_zip(request.body, @owner) do |files|
-        @transaction = Transaction.new(owner: @owner, files: files)
+        @transaction = Transaction.new(owner: @owner, user: current_user.id, files: files)
         @transaction.stash!
         @transaction.save!
       end
@@ -57,7 +57,7 @@ class TransactionsController < ApplicationController
 
   # POST /ingest/:owner ( application/json )
   def ingest_json
-    @owner = params[:owner]
+    @owner = params[:owner].downcase
     if request.body.size.zero?
       logger.info 'Received empty body'
       return render(text: 'No content uploaded', status: 400)
