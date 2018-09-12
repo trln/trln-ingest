@@ -1,5 +1,3 @@
-require 'spofford'
-
 # Controller for managing transactions
 class TransactionsController < ApplicationController
   include Spofford::IngestHelper
@@ -13,7 +11,9 @@ class TransactionsController < ApplicationController
   # GET /transactions
   # GET /transactions.json
   def index
-    @transactions = Transaction.paginate(page: params[:page], per_page: 25).order('created_at DESC')
+    filters = { owner: current_user.primary_institution }
+    filters = {} if params[:view] == 'all'
+    @transactions = Transaction.where(filters).paginate(page: params[:page], per_page: 25).order('created_at DESC')
   end
 
   # GET /transactions/1
@@ -37,13 +37,13 @@ class TransactionsController < ApplicationController
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
     if request.body.size.zero?
-      logger.info('Received empty body')
+      logger.info("#{params[:owner]} -- received empty body")
       return render(text: 'No content uploaded', status: 400)
     end
     @owner = params[:owner].downcase
     begin
       accept_zip(request.body, @owner) do |files|
-        @transaction = Transaction.new(owner: @owner, user: current_user.id, files: files)
+        @transaction = Transaction.new(owner: @owner, user: current_user, files: files)
         @transaction.stash!
         @transaction.save!
       end
@@ -64,7 +64,7 @@ class TransactionsController < ApplicationController
     end
     files = [accept_json(request.body, @owner, operation: 'add')]
     begin
-      @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
+      @transaction = Transaction.create(owner: @owner, files: files, user: current_user)
       @transaction.stash!
       @transaction.save!
       start_worker

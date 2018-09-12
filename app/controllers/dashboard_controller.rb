@@ -4,7 +4,8 @@ class DashboardController < ApplicationController
     logger.info('dashboard index')
     solr = SolrService.new
     @ping_results = solr.ping
-    @clusterstatus = solr.clusterstatus
+    @clusterstatus = solr.clusterstatus 
+    @live_nodes = @clusterstatus.fetch('cluster', {}).fetch('live_nodes', [])
 
     begin
       @sidekiq = { message: 'unable to query Sidekiq', running: false }

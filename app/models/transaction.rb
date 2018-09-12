@@ -6,6 +6,8 @@ require 'tempfile'
 class Transaction < ApplicationRecord
   validates :owner, presence: true
 
+  belongs_to :user
+
   # tag is needed to create a unique directory
   # to store the files; it's set during the stash! process
   validates :tag, presence: true
