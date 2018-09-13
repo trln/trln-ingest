@@ -23,6 +23,9 @@ class SolrService
 
   def clusterstatus
     @client.get('../admin/collections', params: { action: 'CLUSTERSTATUS' })
+  rescue StandardError => ex
+    Rails.logger.error("unable to fetch clusterstatus #{ex.backtrace}")
+    { error: 'sorry' }
   end
 
   def ping

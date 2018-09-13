@@ -9,7 +9,7 @@
   <div class="col-sm-12">
   <div class="card center">
     <div class="card-header">
-        Initiator: <%= @transaction.user || "unknown" %> at <span class="text-muted"><%= local_time @transaction.created_at %></span>
+        Initiator: <%= @transaction.user.username || "unknown" %> at <span class="text-muted"><%= local_time @transaction.created_at %></span>
         Status: <span class="badge badge-<%= status_label_class(@transaction) %>"><%= @transaction.status || "(??)" %></span>
       </div>
       <div class="card-body">

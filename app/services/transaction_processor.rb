@@ -14,21 +14,25 @@ class TransactionProcessor
     @txn = source_txn
   end
 
+  def txn_str
+    @txn_str ||= "[#{@txn.id} (#{txn.owner})]"
+  end
+
   def logger
     @logger ||= Rails.logger
   end
 
   def run
-    logger.info "Start job for #{@txn}"
+    logger.info "#{txn_str} start job"
     @txn.update(status: 'Ingesting')
-    logger.info "[txn:#{txn.id}}] files in #{txn.stash_directory}"
+    logger.info "#{txn_str} storing files in #{txn.stash_directory}"
     process_deletes
     set_up
     Dir.glob("#{txn.stash_directory}/add*.json").each do |update_file|
       process_file(update_file)
     end
     cleanup
-    logger.info "Saved #{@count} records for transaction #{@txn}"
+    logger.info "#{txn_str} saved #{@count} records"
   end
 
   private
@@ -49,20 +53,20 @@ class TransactionProcessor
   end
 
   def read_json_deletes(filename)
-    logger.info("Processing JSON deletes #{filename}")
+    logger.info("#{txn_str} processing JSON deletes in #{filename}")
     deletables = []
     begin
       File.open(filename) do |f|
         deletables = JSON.load(f).collect(&:itself)
       end
     rescue JSON::ParserError => jpe
-      logger.warn "Unable to read delete: #{filename} for Transaction(#{txn.id}) : #{jpe}"
+      logger.warn "#{txn_str} Unable to read delete: #{filename}: #{jpe}"
     end
     deletables
   end
 
   def read_text_deletes(filename)
-    logger.info("Processing text deletes #{filename}")
+    logger.info("#{txn_str} processing text deletes from #{filename}")
     deletables = File.open(filename) do |f|
       f.each_line.collect(&:strip).reject(&:empty?).reject { |x| x.start_with?('#') }
     end
@@ -89,7 +93,7 @@ class TransactionProcessor
   end
 
   def process_deletes
-    logger.info("[txn:#{@txn.id}] Looking for delete files")
+    logger.debug("#{txn_str} looking for delete files")
     total = 0
     files = Dir.glob("#{txn.stash_directory}/delete*").each do |df|
       deletables = read_deletes(df)
@@ -98,9 +102,9 @@ class TransactionProcessor
         count += delete_by_ids(chunk)
       end
       total += count
-      logger.info "Finished processing #{count} deletes [ #{df} ]"
+      logger.info "#{txn_str} finished processing #{count} deletes [ #{df} ]"
     end.length
-    logger.info("Processed #{total} deletes in #{files} file(s)")
+    logger.info("#{txn_str} processed #{total} deletes in #{files} file(s)")
   end
 
   def process_file(filename)
@@ -141,6 +145,7 @@ class TransactionProcessor
       d.local_id = rec.fetch('local_id', 'value' => '<unknown>')['value']
       d.owner = rec['owner'] || rec['source']
       d.content = rec
+      d.deleted = false
       d.txn = txn
       if d.valid?
         d.upsert
@@ -149,7 +154,7 @@ class TransactionProcessor
         @error_writer.write(d.errors.to_json)
       end
     rescue StandardError => ex
-      logger.error "Unable to process #{rec['id']} (#{@count + @errors} record in file)"
+      logger.error "#{txn_str} unable to process #{rec['id']} (#{@count + @errors} record in file)"
       logger.error(ex.backtrace.join("\n"))
     end
     success

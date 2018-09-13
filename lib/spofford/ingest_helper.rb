@@ -5,6 +5,11 @@ require 'fileutils'
 module Spofford
   # methods to help with ingesting JSON and zip packages.
   module IngestHelper
+
+    def logger
+      @logger ||= Rails.logger
+    end
+
     # Default transformer for ingested Argot records.  Sets default values
     # for record attributes that are not set in the ingest package.
     # @param owner [String] default `owner` attribute for the records.
@@ -18,10 +23,6 @@ module Spofford
         rec['institution'] ||= [rec['owner']]
         rec
       end
-    end
-
-    def logger
-      @logger ||= Rails.logger
     end
 
     # Processes an 'add' JSON file containing Argot records,
@@ -44,21 +45,26 @@ module Spofford
       output_file = options[:output_file] || Tempfile.new(["add_#{owner}", '.json'])
       logger.debug "Read Argot: #{body} (#{body.size})" if body.respond_to?(:size)
       parser = Argot::Reader.new(body)
+      counts = { seen: 0, written: 0 }
       begin
         parser.each do |rec|
+          counts[:seen] += 1
           if rec.nil? || rec.empty?
             logger.debug("nil record in #{body} : #{options}")
           else
             result = block.call(rec)
             output_file.write(result.to_json)
+            counts[:written] += 1
           end
         end
         output_file.flush
         output_file.close
-        logger.debug("Ingested file : #{File.basename(output_file)} #{File.size(output_file.path)} : #{options}")
+        fn = File.basename(output_file)
+        logger.info("#{fn} wrote #{counts[:written]}/#{counts[:seen]} records")
+        logger.debug("Ingested file : #{fn} #{File.size(output_file.path)} : #{options}")
         File.expand_path(output_file)
       rescue Yajl::ParseError => e
-        logger.error("Ingest pacakge contained unprocessable JSON, #{e.message}")
+        logger.error("Ingest package contained unprocessable JSON, #{e.message}")
         raise ArgumentError, "Unable to process invalid JSON: #{e.message}"
       end
     end
@@ -74,7 +80,7 @@ module Spofford
       begin
         body.binmode
         tempzip = stream_to_tempfile(body, owner, '.zip')
-        logger.warn("Temp zip has #{File.size(tempzip)}")
+        logger.info("Temp zip has #{File.size(tempzip)}")
         Dir.mktmpdir do |dir|
           Zip::File.open(tempzip) do |zipfile|
             zipfile.each do |entry|
@@ -105,6 +111,7 @@ module Spofford
       temp = Tempfile.new(["ingest-#{owner}", extension])
       logger.debug("Stream #{stream.size}: #{stream.tell} -- tempfile: #{temp}")
       written = IO.copy_stream(stream, temp)
+      temp.flush
       temp.fsync
       logger.debug("Temp file has size #{File.size(temp)}; wrote #{written}")
       temp

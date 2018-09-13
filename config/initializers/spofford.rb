@@ -14,4 +14,5 @@ Rails.application.configure do
     Rails.logger.warn("Transaction storage directory #{config.stash_directory} does not exist, will be created")
     FileUtils.mkdir(config.stash_directory)
   end
+
 end

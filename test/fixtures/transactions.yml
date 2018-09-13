@@ -2,12 +2,14 @@
 
 one:
   owner: ncsu
-  user: ajconsta
+  user_id: 1
   status: New
   files: '{docs,errors}'
 
 two:
   owner: unc
-  user: kspurgin
+  user_id: 2
   status: Complete
   files: '{docs,errors}'
+
+
