@@ -1,7 +1,6 @@
 module Spofford
   # Creates a default SolrValidator as a filter
   class SolrValidator < Argot::Filter
-
     attr_reader :errors
 
     # Create a new solr validator
@@ -16,7 +15,13 @@ module Spofford
         if res.empty?
           true
         else
-          @collector.call(rec, res) rescue nil if @collector
+          if @collector
+            begin
+              @collector.call(rec, res)
+            rescue
+              nil
+            end
+          end
           @errors += 1
           false
         end

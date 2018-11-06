@@ -15,13 +15,13 @@ class IngestHelperTest < ActiveSupport::TestCase
 
   def test_accept_zip
     input = file_fixture('ingest-single.zip')
-    accept_zip(input.open, 'test') do |files|
+    accept_zip(input.open, 'test', test_zip: true) do |files|
       assert files.length == 1
       simple_asserts(read_json(files.first))
     end
   end
 
-  def test_copy_stream
+  def test_stream_to_tempfile
     input = file_fixture('ingest-single.zip')
     temp = stream_to_tempfile(input.open, 'test')
     assert File.size(temp) == input.size, 'zip stream copy has wrong size'
@@ -29,6 +29,5 @@ class IngestHelperTest < ActiveSupport::TestCase
 
   def simple_asserts(data)
     assert data['owner'] == 'test', 'owner should be "test"'
-    assert data['collection'] == 'general', 'collection should be "general"'
   end
 end

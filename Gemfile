@@ -12,9 +12,9 @@ git_source(:github) do |r|
 end
   
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '~> 5.0.2'
+gem 'rails', '~> 5.1.0'
 
-gem 'devise', '~> 4.3.0'
+gem 'devise', '>= 4.4.0'
 
 # adds authentication token features to devise;
 # can auth actions with a token instead of interactive
@@ -31,7 +31,7 @@ gem 'will_paginate', '~> 3.1.6'
 
 # bootstrap styles
 #
-gem 'bootstrap', '~> 4.0.0.beta'
+gem 'bootstrap', '~> 4.1'
 
 gem 'local_time', '~> 2.0.0'
 
@@ -48,12 +48,9 @@ gem 'typescript-rails'
 # git is used to fetch mappings from github
 gem 'git', '~> 1.3.0'
 
-
-
-# Use CoffeeScript for .coffee assets and views
-# gem 'coffee-rails', '~> 4.2'
 # See https://github.com/rails/execjs#readme for more supported runtimes
-gem 'therubyracer', '~> 0.12.3', platforms: :ruby
+#gem 'therubyracer', '~> 0.12.3', platforms: :ruby
+gem 'mini_racer', platforms: :ruby
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
@@ -66,7 +63,7 @@ gem 'rsolr'
 
 # allows fast processing of concatenated JSON
 
-gem 'yajl-ruby', require: 'yajl'
+gem 'yajl-ruby', '>= 1.3.1', require: 'yajl'
 
 # allow transactions to be sent in as .zip files
 gem 'rubyzip'
@@ -78,6 +75,8 @@ gem 'hashids'
 
 gem 'sidekiq'
 
+#gem 'pg', '>= 0.21'
+
 # Postgres 9.5+ native "upsert" support
 # there are other approaches, some of which involve creating CSV files
 # https://github.com/jesjos/active_record_upsert is base
@@ -85,7 +84,6 @@ gem 'sidekiq'
 # :git => 'https://github.com/phoffer/active_record_upsert.git' a fork for the moment which allows us to use something other than id column as conflict column
 gem 'active_record_upsert', platform: :mri
 
-gem 'pg'
 
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
@@ -119,7 +117,7 @@ group :development do
 end
 
 group :test do
-	gem 'warden'
+  gem 'warden'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

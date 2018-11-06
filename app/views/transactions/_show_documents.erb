@@ -1,0 +1,11 @@
+ <div class="card">
+  <div class="card-body">
+      <label for="nosubmit">View Records</label>
+      <input list="document_ids" name='nosubmit' id='nosubmit' placeholder="record unique ID" onchange='window.location="<%= url_for(controller:'documents', trailing_slash: 1) %>" + this.value;'>
+      <datalist id='document_ids'>
+        <% @document_ids.each do |did| %>
+        <option value='<%= did.id %>' />
+        <% end %>
+      </datalist>
+    </div>
+  </div>

@@ -1,71 +1,97 @@
-require 'spofford'
-
 # Controller for managing transactions
 class TransactionsController < ApplicationController
   include Spofford::IngestHelper
+
   protect_from_forgery except: %i[ingest_json ingest_zip]
   acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
 
   before_action :authenticate_user!
-  before_action :set_transaction, only: %i[show edit update destroy]
+  before_action :set_transaction, only: %i[show edit update destroy archive]
 
   # GET /transactions
   # GET /transactions.json
   def index
-    @transactions = Transaction.paginate(page: params[:page], per_page: 25).order('created_at DESC')
+    filters = { owner: current_user.primary_institution }
+    filters = {} if params[:view] == 'all'
+    @transactions = Transaction.where(filters).paginate(page: params[:page], per_page: 25).order('created_at DESC')
   end
 
   # GET /transactions/1
   # GET /transactions/1.json
   def show
     @document_ids = Document.where(txn: @transaction).select(:id, :local_id)
+    @job_status = helpers.sidekiq_job_status(@transaction.id)
+    @zip_entries = Hash[@transaction.files.select { |f| File.exist?(f) && File.extname(f) == '.zip' }
+                               .map { |f| [f, helpers.zip_contents(f)] }]
   end
 
-  # GET /transactions/new
-  def new
-    owner = params[:owner] || 'ncsu'
-    @transaction = Transaction.new(owner: owner)
-  end
-
-  # GET /transactions/1/edit
+  # GET /transactions/:id/edit
   def edit
     start_worker
+  end
+
+  def archive
+    @transaction.archive!
   end
 
   # POST /ingest/:owner ( application/zip )
   def ingest_zip
     if request.body.size.zero?
-      logger.info('Received empty body')
+      logger.info("#{params[:owner]} -- received empty body")
       return render(text: 'No content uploaded', status: 400)
     end
-    @owner = params[:owner]
-    accept_zip(request.body, @owner) do |files|
-      @transaction = Transaction.new(owner: @owner, files: files)
-      @transaction.stash!
-      @transaction.save!
+    @owner = params[:owner].downcase
+    begin
+      accept_zip(request.body, @owner) do |files|
+        @transaction = Transaction.new(owner: @owner, user: current_user, files: files)
+        @transaction.stash!
+        @transaction.save!
+      end
+      start_worker
+    rescue ArgumentError => e
+      render status: 400, json: { status: 'JSON error', message: e.message }
+    rescue StandardError => e
+      render status: 500, json: { status: 'Unknown error', message: e.message }
     end
-    start_worker
   end
 
   # POST /ingest/:owner ( application/json )
   def ingest_json
-    @owner = params[:owner]
+    @owner = params[:owner].downcase
     if request.body.size.zero?
       logger.info 'Received empty body'
       return render(text: 'No content uploaded', status: 400)
     end
     files = [accept_json(request.body, @owner, operation: 'add')]
-    @transaction = Transaction.create(owner: @owner, files: files, user: current_user.id)
-    @transaction.stash!
-    @transaction.save!
-    start_worker
+    begin
+      @transaction = Transaction.create(owner: @owner, files: files, user: current_user)
+      @transaction.stash!
+      @transaction.save!
+      start_worker
+    rescue ArgumentError => e
+      render status: 400, json: { status: 'JSON error', message: e.message }
+    rescue StandardError => e
+      render status: 500, json: { status: 'Unknown error', message: e.message }
+    end
   end
 
   # POST /ingest/:owner w/ multipart mime type
   def upload
-    logger.debug("here we are in upload with content type " + request.headers['Content-Type'])
     @owner = params[:owner]
     @package = params[:package]
+  end
+
+  # GET :id/filedownload/:filename
+  def filedownload
+    @transaction = Transaction.find(params[:id])
+    name = helpers.filename_for_download
+    path = helpers.path_for_download(name)
+    return render(text: 'File not found', status: 404) unless File.exist?(path)
+    type = helpers.mime_type_from_filename(name)
+    type ||= request.format
+    # our 'json' files are streaming format, which breaks most browser
+    # parsers, so force download
+    send_file(path, filename: name, disposition: 'attachment', type: type)
   end
 
   def ingest_form
@@ -97,17 +123,15 @@ class TransactionsController < ApplicationController
     render 'ingest'
   end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_transaction
-    begin
-      @transaction = Transaction.find(params[:id])
-    rescue ActiveRecord::RecordNotFound
-      raise ActionController::RoutingError.new("Not Found")
-    end
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_transaction
+    @transaction = Transaction.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    raise ActionController::RoutingError, 'Not Found'
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def transaction_params
-      params.require(:transaction).permit(:owner, :user, :status, :files)
-    end
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def transaction_params
+    params.require(:transaction).permit(:owner, :user, :status, :files)
+  end
 end

@@ -6,6 +6,8 @@ require 'tempfile'
 class Transaction < ApplicationRecord
   validates :owner, presence: true
 
+  belongs_to :user
+
   # tag is needed to create a unique directory
   # to store the files; it's set during the stash! process
   validates :tag, presence: true
@@ -14,8 +16,14 @@ class Transaction < ApplicationRecord
 
   after_initialize :initialize_directories
 
+  after_create_commit :symlink_tx_dir
+
+  after_update_commit :symlink_tx_dir
+
+  after_destroy_commit :remove_tx_dir
+
   def initialize_directories(_ = {}, options = {})
-    owner ||= 'trln'
+    self.owner ||= 'trln'
     timestamp = created_at || Time.now
     base_dir = options[:base_dir] || Rails.application.config.stash_directory
     day_dir = timestamp.strftime("%Y#{File::SEPARATOR}%m#{File::SEPARATOR}%d")
@@ -42,10 +50,59 @@ class Transaction < ApplicationRecord
     self.files = stash_files
   end
 
+  def error_files
+    return [] unless files
+    files.grep(/error/i)
+  end
+
+  def record_errors
+    errors_display = []
+    total = 0
+    error_files.map do |filename|
+      if File.exist?(filename)
+        File.open(filename) do |f|
+          file_errors = 0
+          Argot::Reader.new(f).each do |err|
+            total += 1
+            file_errors += 1
+            errors_display << err unless file_errors > 500
+          end
+        end
+        errors_display
+      else
+        { 'id' => 'N/A', 'msg' => "File #{filename} not found" }
+      end
+    end.flatten
+  end
+
+  def archive!
+    archive_file = Spofford::ZipHandler.compress_transaction(self)
+    if archive_file
+      remove_tx_dir
+      return update!(status: 'Archived', files: [archive_file])
+    end
+    false
+  end
+
+  def find_symlink_path
+    File.join(File.expand_path('..', stash_directory), id.to_s)
+  end
+
   private
 
-  def absolutize_file(f)
-    File.join(stash_directory, File.basename(f)) if File.exist?(f)
+  def symlink_tx_dir
+    return unless File.directory?(stash_directory)
+    id_path = find_symlink_path
+    File.symlink(stash_directory, id_path) unless File.symlink?(id_path)
+  end
+
+  def remove_tx_dir
+    FileUtils.rm_rf(stash_directory)
+    FileUtils.rm(find_symlink_path) if File.symlink?(find_symlink_path)
+  end
+
+  def absolutize_file(filename)
+    File.join(stash_directory, File.basename(filename)) if File.exist?(filename)
   end
 
   def prepare_stash!
@@ -70,4 +127,5 @@ class Transaction < ApplicationRecord
                   timestamp.sec,
                   timestamp.nsec)
   end
+  # rubocop:enable MethodLength
 end

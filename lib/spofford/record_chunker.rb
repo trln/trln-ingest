@@ -11,7 +11,7 @@ module Spofford
     # @option options [String] chunk_size the number of records to write to each file
     # @options options [String] transaction_id an (optional) transaction ID to be used in the creation of a temporary directory
     # @options options [Dir] an optional directory to store the output files.  If not provided, a temporary directory will be created.
-    def initialize(options={})
+    def initialize(options = {})
       @files = []
       @count = 0
       options = Marshal.load(Marshal.dump(DEFAULTS)).update(options)
@@ -32,7 +32,7 @@ module Spofford
     end
 
     def next_file
-      fn = "solr-out-#{@files.length+1}.json"
+      fn = "solr-out-#{@files.length + 1}.json"
       full_path = File.join(@dir, fn)
       @files << full_path
       begin
@@ -40,12 +40,12 @@ module Spofford
       rescue Exception => e
         puts e
       end
-   end 
+   end
 
     def finish_currentfile
-      if not @current_file.nil?
+      unless @current_file.nil?
         @current_file.flush
-        @current_file.close            
+        @current_file.close
         @current_file = nil
       end
     end
@@ -63,6 +63,6 @@ module Spofford
       Dir.rmdir(@dir) if @is_tempdir
     end
 
-    alias_method :close, :finish_currentfile
+    alias close finish_currentfile
   end
 end

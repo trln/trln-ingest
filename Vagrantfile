@@ -13,18 +13,24 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
 
   config.vm.box = "centos/7"
 
+  # empty but it gives the VM a name
+  config.vm.define 'spofford' do
+  end
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
   config.vm.box_check_update = false
 
   # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. 
+  # within the machine from a port on the host machine; these are the
+  # 'standard' ports +1 to allow for coexistence with apps using those
+  # ports on the host
   
-  # Rails
-  config.vm.network "forwarded_port", guest: 3000, host: 3000
-  # Solr
-  config.vm.network "forwarded_port", guest: 8983, host: 8983
+  # Rails on 3001
+  config.vm.network "forwarded_port", guest: 3000, host: 3001
+  # Solr on 8984
+  config.vm.network "forwarded_port", guest: 8983, host: 8985
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -39,13 +45,15 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
+  #
+  # this ought to be teh shared folder
   config.vm.synced_folder ".", "/vagrant" , owner: 'vagrant', group: 'vagrant', type: 'virtualbox'
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  config.vm.provider "virtualbox" do |vb|
+  config.vm.provider :virtualbox do |vb|
     vb.name = 'Spofford'
     # Display the VirtualBox GUI when booting the machine
     vb.gui = false
@@ -79,8 +87,22 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
 CREATE USER shrindex with PASSWORD '<%= password %>';
 ALTER USER shrindex CREATEDB;
 CREATE DATABASE shrindex WITH OWNER shrindex;
+CREATE DATABASE shrindex_testing WITH OWNER shrindex;
 TMPL
-    
+
+  if not File.exist?('.vagrant_rails_env')
+    require 'securerandom'
+    File.open(".vagrant_rails_env", "w") do |f|
+      f.write(%Q{export DB_NAME="shrindex"\n})
+      f.write(%Q{export DB_USER="shrindex"\n})
+      # don't set DB_HOST or DB_PASSWORD; vagrant setup uses
+      # UNIX socket/ident postgres auth
+      f.write(%Q{export SECRET_KEY_BASE="#{SecureRandom.hex(32)}"\n})
+      f.write(%Q{# set this to production if you want less logging\n})
+      f.write(%Q{export TRANSACTION_STORAGE_BASE=/home/vagrant/spofford-data\n})
+      f.write(%Q{export RAILS_ENV=development\n})
+    end
+  end
 
   if not File.exist?("postgres-setup.sql") 
         password = dbpw
@@ -91,11 +113,17 @@ TMPL
         end
   end
 
+  ruby_version = if File.exist?('.ruby-version')
+                   File.read('.ruby-version')
+                 else
+                   '2.5.1'
+                 end
+
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
-     RUBYVER=2.4.2
+     RUBYVER=#{ruby_version}
      HOMEDIR=/home/vagrant
      echo '#{dbpw}' > "${HOMEDIR}/.dbpassword"
      chown vagrant.vagrant ${HOMEDIR}/.dbpassword
@@ -117,26 +145,34 @@ TMPL
      systemctl enable redis.service
      systemctl start redis.service
 
-     if [ ! -d "${HOMEDIR}/rpms" ]; then
+     if [ ! -d "/vagrant/rpms" ]; then
         echo "Fetching compiled packages from github"
-        sudo -u vagrant git clone https://github.com/trln/local-rpms "${HOMEDIR}/rpms"
-        echo "Installing RPMS"
-        pushd "${HOMEDIR}/rpms"
-        rpm -Uvh *.rpm
-        if [ -e scripts/chruby.sh ]; then
-            install -o root -g root -m 0755 scripts/chruby.sh /etc/profile.d/chruby.sh
-        fi
-        RUBIESDIR="${HOMEDIR}/.rubies"
-        # now unpack the ruby tarball; this tarball
-        # was created by compiling ruby on an indentical VM
-        # with the ruby-install command, so it should be 
-        # identical to what we'd get if we tried that on this machine
-        [[ ! -d "${RUBIESDIR}" ]] && sudo -u vagrant mkdir -m 0755 "${RUBIESDIR}"
-        if [ ! -d "${RUBIESDIR}/ruby-${RUBYVER}" ]; then
-            cd ${RUBIESDIR}
-            sudo -u vagrant tar xzf ${HOMEDIR}/rpms/ruby-${RUBYVER}-compiled.tar.gz
-        fi
+        sudo -u vagrant git clone https://github.com/trln/local-rpms "/vagrant/rpms"
+     fi
+
+     echo "Installing RPMS"
+     pushd "/vagrant/rpms"
+     rpm -Uvh *.rpm
+     if [ -e scripts/chruby.sh ]; then
+      install -o root -g root -m 0755 scripts/chruby.sh /etc/profile.d/chruby.sh
+     fi
+     RUBIESDIR="${HOMEDIR}/.rubies"
+
+     # now unpack the ruby tarball; this tarball
+     # was created by compiling ruby on an indentical VM
+     # with the ruby-install command, so it should be 
+     # identical to what we'd get if we tried that on this machine
+     [[ ! -d "${RUBIESDIR}" ]] && sudo -u vagrant mkdir -m 0755 "${RUBIESDIR}"
+     TARBALL="$HOMEDIR/rpms/ruby-${RUBYVER}-compiled.tar.gz"
+     if [ -e "$TARBALL" ]; then
+       if [ ! -d "${RUBIESDIR}/ruby-${RUBYVER}" ]; then
+        cd ${RUBIESDIR}
+        sudo -u vagrant tar xzf ${HOMEDIR}/rpms/ruby-${RUBYVER}-compiled.tar.gz
         popd
+       fi
+     else
+      ruby-install -L
+      ruby-install ruby-${RUBYVER}
      fi
 
      # the next bit adds the Postgresql yum repository

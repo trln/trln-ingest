@@ -8,6 +8,11 @@
 # Ignore bundler config.
 /.bundle
 /.vagrant
+*.iml
+
+.vagrant_rails_env
+
+.ruby-version
 
 
 # Ignore the default SQLite database.

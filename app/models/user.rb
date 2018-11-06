@@ -4,6 +4,10 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable
 
+  def username
+    @username ||= email.gsub(/@.*/, '')
+  end
+
   def active_for_authentication?
     super && approved?
   end

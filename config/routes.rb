@@ -7,11 +7,17 @@ Rails.application.routes.draw do
     post '/users/:id/new_token', to: 'users#new_token!'
   end
 
+  get '/dashboard' => 'dashboard#index'
+
   resources :transactions
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root to: 'transactions#index'
 
   get '/transaction/:id' => 'transactions#show'
+  get '/transaction/:id/file/:filename' => 'transactions#filedownload'
+
+  post '/transaction/:id/archive' => 'transactions#archive'
+
   delete '/transaction/:id' => 'transactions#destroy'
 
   post '/index/:id', to: 'transactions#start_index', as: 'reindex'
@@ -25,5 +31,7 @@ Rails.application.routes.draw do
   get   '/record/search', to: 'documents#search'
   get   '/record/:id' => 'documents#show', :defaults => { format: 'html'}, as: 'show_document'
 
-  mount Sidekiq::Web => '/sidekiq'
+  authenticate :user, ->(u) { u.admin? } do
+    mount Sidekiq::Web => '/sidekiq'
+  end
 end

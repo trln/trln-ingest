@@ -19,7 +19,6 @@ th {
 	vertical-align: middle;
 }
 
-
 .transaction td {
 	text-align: center;
 	vertical-align: middle;
@@ -27,4 +26,9 @@ th {
 
 .transaction td.owner {
 	font-weight: bold;
+}
+
+.txn-actions form {
+	display: inline;
+	padding: 2em;
 }

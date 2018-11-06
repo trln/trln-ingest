@@ -5,7 +5,7 @@ class TransactionWorker < CancellableWorker
     return if cancelled?
     begin
       txn = Transaction.find(transaction_id)
-    rescue RecordNotFound
+    rescue ActiveRecord::RecordNotFound
       logger.info("Cancelling #{jid} because no txn matches id #{transaction_id}")
       cancel!(jid)
       return

@@ -15,6 +15,11 @@
     <%= f.email_field :email, disabled: true %>
   </div>
 
+  <div class='field'>
+    <%= f.label :primary_institution, 'Institituion' %> <br />
+    <%= f.text_field :primary_institution %>
+  </div>
+
 
   <% if current_user.admin? %>
   <div class='field form-check'>
@@ -32,16 +37,17 @@
   <% if current_user.admin? || current_user == @user %>
   <div class="actions">
     <%= f.submit "Update",class: 'btn btn-primary' %>
-    <% if @user == current_user %>
+  </div>
+  <% end %>
+
+<% end %>
+<% if @user == current_user %>
       <form id="new_token" method="post" action="<%= @user.id %>/new_token">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <button class="btn btn-warning">Generate New Access Token</button>
       </form> 
   <% end %>
-  </div>
-  <% end %>
 
-<% end %>
 
  
 

@@ -1,0 +1,16 @@
+<div class="card">
+   <div class="card-body">
+    <h4 class="card-title">Empty Batch</h4>
+    <h5 class="card-subtitle text-muted">There are currently no records associated with this batch, probably because:</h5>
+    <ul>
+	  <% if @transaction.status == 'Ingesting' %>
+	   <li class="text-notice">Ingest is still ongoing</li>
+	  <% elsif ['Archived', 'Complete'].include?(@transaction.status) %>
+	   <li class="text-notice">the records have all been updated since it was initially submitted, <strong>OR</strong></li>
+     <li class="text-notice">they all had errors that prevented ingest.</li>
+   	<% else %>
+   	  <li class="text-warning">... we're not sure, really.</li>
+   	<% end %>
+    </ul>
+  </div>
+</div>
