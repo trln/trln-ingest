@@ -13,7 +13,8 @@ class TransactionsController < ApplicationController
   def index
     filters = { owner: current_user.primary_institution }
     filters = {} if params[:view] == 'all'
-    @transactions = Transaction.where(filters).paginate(page: params[:page], per_page: 25).order('created_at DESC')
+    @transactions = Transaction.where(filters).paginate(page: params[:page], per_page: 12).order('created_at DESC')
+    @filtered = !filters.empty?
   end
 
   # GET /transactions/1
@@ -132,6 +133,7 @@ class TransactionsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def transaction_params
+    params.permit(:view)
     params.require(:transaction).permit(:owner, :user, :status, :files)
   end
 end
