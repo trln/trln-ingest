@@ -1,3 +1,3 @@
 module Spofford
-  VERSION = '0.3.9'.freeze
+  VERSION = '0.3.91'.freeze
 end
