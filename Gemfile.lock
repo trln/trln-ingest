@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: 6f8c9bec215162ea3c5eeec0d3e56ef757e702c8
+  revision: b2fa26c0c9704b2c9b555c629d4c82f4f79dc201
   specs:
-    argot (0.6.19)
+    argot (0.6.20)
       rsolr (~> 1.1, >= 1.1.2)
       rubyzip (~> 1.2)
       thor (~> 0.20.0)
