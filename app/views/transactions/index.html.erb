@@ -39,12 +39,12 @@
   <tfoot>
     <tr>
        <td colspan='5'>
-      <%= will_paginate @transactions %>
+      <%= paginate @transactions %>
     </td>
     </tr>
     <tr>
       <td colspan='5'>
-        <%= page_entries_info(@transactions, model: 'transactions') %>
+        <%= page_entries_info(@transactions) %>
       </td>
     </tr>
   </tfoot>
