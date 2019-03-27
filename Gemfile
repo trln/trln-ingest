@@ -13,7 +13,7 @@ end
 
 gem 'rails', '~> 5.1.0'
 
-gem 'devise', '>= 4.4.0'
+gem 'devise', '~> 4.6.0'
 
 # adds authentication token features to devise;
 # can auth actions with a token instead of interactive
@@ -31,7 +31,7 @@ gem 'kaminari'
 
 # bootstrap styles
 #
-gem 'bootstrap', '~> 4.1'
+gem 'bootstrap', '~> 4.3.0'
 
 gem 'local_time', '~> 2.0.0'
 
