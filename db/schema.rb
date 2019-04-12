@@ -30,7 +30,6 @@ ActiveRecord::Schema.define(version: 20180904184901) do
 
   create_table "transactions", id: :serial, force: :cascade do |t|
     t.string "owner"
-    t.string "user"
     t.string "status"
     t.string "tag"
     t.string "stash_directory"

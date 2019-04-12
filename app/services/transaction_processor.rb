@@ -148,7 +148,7 @@ class TransactionProcessor
       d.deleted = false
       d.txn = txn
       if d.valid?
-        d.upsert
+        Document.upsert(d.attributes)
         success = true
       else
         @error_writer.write(d.errors.to_json)

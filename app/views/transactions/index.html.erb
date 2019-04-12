@@ -1,5 +1,17 @@
 <%= content_for(:title, "TRLN Ingest: Recent Updates") %>
 
+
+<div class="alert alert-secondary" role="alert">
+<% if @filtered %> 
+  Viewing transactions only from your primary institution.
+    <%= link_to("See all transactions", '/?view=all', class: "alert-link" ) %>
+  <% else %>
+     Viewing transactions from all institutions.
+   <%= link_to("See only your institution's transactions", '/', class: "alert-link") %>
+    
+<% end %>
+</div>
+
 <table class="table transactions">
   <thead>
     <tr>
@@ -12,6 +24,7 @@
   </thead>
 
   <tbody>
+    
     <% @transactions.each do |transaction| %>
       <tr class="transaction">
         <td class='owner <%= transaction.owner.downcase %>'><%= transaction.owner.upcase %></td>
@@ -26,12 +39,12 @@
   <tfoot>
     <tr>
        <td colspan='5'>
-      <%= will_paginate @transactions %>
+      <%= paginate @transactions %>
     </td>
     </tr>
     <tr>
       <td colspan='5'>
-        <%= page_entries_info(@transactions, model: 'transactions') %>
+        <%= page_entries_info(@transactions) %>
       </td>
     </tr>
   </tfoot>

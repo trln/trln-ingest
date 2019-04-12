@@ -3,7 +3,7 @@ class TransactionsController < ApplicationController
   include Spofford::IngestHelper
 
   protect_from_forgery except: %i[ingest_json ingest_zip]
-  acts_as_token_authentication_handler_for User, only: %i[ingest_zip ingest_json], fallback: :exception
+  acts_as_token_authentication_handler_for User, only: %i[index show ingest_zip ingest_json], fallback: :exception
 
   before_action :authenticate_user!
   before_action :set_transaction, only: %i[show edit update destroy archive]
@@ -13,7 +13,8 @@ class TransactionsController < ApplicationController
   def index
     filters = { owner: current_user.primary_institution }
     filters = {} if params[:view] == 'all'
-    @transactions = Transaction.where(filters).paginate(page: params[:page], per_page: 25).order('created_at DESC')
+    @transactions = Transaction.where(filters).page(params[:page]).order('created_at DESC')
+    @filtered = !filters.empty?
   end
 
   # GET /transactions/1
@@ -132,6 +133,7 @@ class TransactionsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def transaction_params
+    params.permit(:view)
     params.require(:transaction).permit(:owner, :user, :status, :files)
   end
 end

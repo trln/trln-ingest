@@ -18,7 +18,7 @@ module Spofford
     def fetch_solr(doc_id)
       result = {}
       SolrService.new do |service|
-        response = service.client.get :select, params: { q: "id:#{doc_id}" }
+        response = service.client.get :document, params: { id: doc_id }
         dr = response['response']
         result = dr['docs'].first if dr && !dr['docs'].empty?
       end
