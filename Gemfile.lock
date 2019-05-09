@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: f6fd0b0637ffd290d6764dd9a75fe7238dc2349a
+  revision: bdd2069a9a8f95583474a095f5b35d349bac361f
   specs:
-    argot (0.7.1)
+    argot (0.7.2)
       nokogiri (~> 1.10)
       rsolr (~> 1.1, >= 1.1.2)
       rubyzip (~> 1.2)
@@ -126,7 +126,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    marc (1.0.2)
+    marc (1.0.3)
       scrub_rb (>= 1.0.1, < 2)
       unf
     marc-fastxmlwriter (1.0.0)
@@ -245,7 +245,7 @@ GEM
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.5)
+    unf_ext (0.0.7.6)
     warden (1.2.8)
       rack (>= 2.0.6)
     web-console (3.7.0)
