@@ -20,14 +20,14 @@
   <% end %>
  </tbody>
   <tfoot>
-    <tr>
+<tr>
        <td colspan='3'>
-      <%= will_paginate @users %>
+      <%= paginate @users%>
     </td>
     </tr>
     <tr>
-      <td colspan='5'>
-        <%= page_entries_info(@users, model: 'users') %>
+      <td colspan='3'>
+        <%= page_entries_info(@users) %>
       </td>
     </tr>
   </tfoot>

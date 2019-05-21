@@ -7,7 +7,8 @@ class UsersController < ApplicationController
   attr_reader :user, :resource, :resource_name
 
   def index
-    @users = User.paginate(page: params[:page], per_page: 10).order('email')
+    User.paginates_per(10)
+    @users = User.page(params[:page]).order('email')
     render 'devise/admin/index'
   end
 

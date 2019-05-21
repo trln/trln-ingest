@@ -37,6 +37,8 @@ class SolrService
     clients.each_with_object({}) do |(host, client), out|
       out[host] = client.get('admin/ping')
     end.to_ostruct_deep
+  rescue StandardError => e
+	{ message: e.to_s }
   end
 
   # Deletes documents from the index by ID.
