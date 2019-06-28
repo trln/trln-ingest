@@ -3,7 +3,6 @@
   <div class="header <%= @doc.owner %>">
       <h1>ID: <%= @doc.id %><% if @doc.deleted? %>
       <span class='deleted'>( deleted )</span><% end %></h1>
-      <h3>Local ID: <%= @doc.local_id %></h3>
   </div>
     <div class="card">
       <div class="card-body">
@@ -15,18 +14,47 @@
 
     <div class="card-body">
       <h3 class="card-title"><%= main_title(@content) %></h3>
-      <h5 class="card-subtitle text-muted"><%= @content.resource_type.first %></h5>
+      <h5 class="card-subtitle mb-2 text-muted">Last Updated: <%= @doc.updated_at.in_time_zone.strftime("%a, %b %d, %Y @ %I:%M %P") %> (<%= @doc.updated_at.in_time_zone %>)</h5>
+      <h5 class="card-subtitle mb-2 text-muted">Source: <%= @content.record_data_source&.join(',') %></h5>
+	<% if @content.rollup_id %>
+      <h5 class="card-subtitle mb-2 text-muted">Rollup ID: <%= @content.rollup_id %></h5>
+	<% end %>
+      <h5 class="card-subtitle mb-2 text-muted">Availability: <%= @content.available || '(not avaialable)' %></h5>
+
+     <% if @content.items %>
+	<h6 class="card-subtitle text-muted"><%= pluralize(@content.items.length, 'item') %></h6>
+     <% end %>
+
+    <div class="basic-props">
+
+     <dl>
+	<dt>Access Type</dt>
+	<% @content.access_type&.each do |t| %>
+	  <dd><%= t %>
+	<% end %> 
+	</dl>
+     <dl>
+	<dt>Resource Type</dt>
+	<% @content.resource_type&.each do |t| %>
+	  <dd><%= t %>
+	<% end %>
+     </dl>
+<dl>
+	<dt>Physical Media</dt>
+	<% @content.physical_media&.each do |pm| %>
+	  <dd><%= pm %></dd>
+	<% end %>
+	</dl>
+	<dl>
+	
+	<dt>Institutions</dt>
+	<% @content.institution&.each do |i| %>
+          <dd><%= i %></dd>
+	<% end %>
+     </dl>
+	</div>
     
 
-      <% if @content.statement_of_responsibility && @content.statement_of_responsibility.try(:first) %>
-        <div class="text-muted">Statement of Responsibility: <%= @content.statement_of_responsibility.map(&:value).join(', ') %></div>
-      <% end %>
-      <% if @content.publisher && @content.publisher.try(:first) %>
-      <div class="text-muted">Publisher: <%= @content.publisher.join(", ") %></div>
-      <% end %>
-      <% if @content.isbn %>
-        <div class='text-muted'>ISBN: <%= isbns(@content) %></div>
-      <% end %>
       <% if @content.virtual_collection && @content.virtual_collection.try(:first) %>
       <ul>
         <% @content.virtual_collection.each do |coll| %>
@@ -42,7 +70,7 @@
       <h3 class="card-title">Document Views</h3>
       <ul class="list-group list-group-flush">
         <li class="list-group-item">
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#argot" aria-expanded="false" aria-controls="argot">
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#argot" aria-expanded="true" aria-controls="argot">
       <span class='visible'>Hide</span>
       <span class='hidden'>Show</span>
       Argot
@@ -61,13 +89,6 @@
       <span class='hidden'>Show</span>
       Solr Document
     </button></li>
-    <li class="list-group-item">
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target='#luke-view' aria-expanded='false' aria-controls='luke-view'>
-      <span class='visible'>Hide</span>
-      <span class='hidden'>Show</span>
-      Advanced Solr View
-    </button>
-  </li>
 
     <li class="list-group-item">
     <button class="btn btn-primary" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="argot enriched-view solr-view luke-view">
@@ -77,7 +98,7 @@
     </button>
   </li>
 
-    <div id="argot" class="collapse multi-collapse">
+    <div id="argot" class="collapse multi-collapse show">
       <h3>Argot (<%= link_to('download', controller: 'documents', action: 'show', id: @doc.id, format: :json) %>)</h3>
       <span class='detail'>Currently Stored</span>
       <code><pre><%= pretty_json(@doc.content) %></pre></code>
@@ -98,13 +119,5 @@
         <code><pre><%= pretty_json(@solr) %></pre></code>
       </div>
     </div>
-
-    <div id="luke-view" class="collapse multi-collapse">
-      <h1>Advanced Solr Index View</h1>
-      <span class='detail'>Analyzed field content in Solr index</span>
-        <code><pre><%= pretty_json(@luke) %></pre></code>
-    </div>
-
-  </section>
   </div>
 </div>
