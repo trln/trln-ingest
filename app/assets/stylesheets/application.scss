@@ -107,5 +107,14 @@ header {
 	a, span, em {
 		margin: auto 1em;
 	}
+}
 
+.basic-props {
+	display: flex;
+        align-items: center;
+        align-content: space-between;
+        justify-content: center;
+	dl {
+		padding: 2em;
+	}
 }

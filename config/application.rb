@@ -25,5 +25,6 @@ module TrlnIngest
         YAML.load_file(env_file).each { |key, value| ENV[key.to_s] = value }
       end
     end
+    config.time_zone = 'Eastern Time (US & Canada)'
   end
 end
