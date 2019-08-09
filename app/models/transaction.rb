@@ -29,7 +29,7 @@ class Transaction < ApplicationRecord
     day_dir = timestamp.strftime("%Y#{File::SEPARATOR}%m#{File::SEPARATOR}%d")
     self.status ||= 'New'
     self.tag = generate_tag(timestamp) unless tag
-    self.stash_directory = File.join(base_dir, owner, day_dir, tag)
+    self.stash_directory ||= File.join(base_dir, owner, day_dir, tag)
   end
 
   ##

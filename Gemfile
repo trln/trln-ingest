@@ -124,7 +124,9 @@ group :development do
 end
 
 group :test do
-  gem 'warden'
+  gem 'pry-byebug'
+  #gem 'warden'
+  gem 'timecop', '~> 0.9.1'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

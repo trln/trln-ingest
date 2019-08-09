@@ -24,11 +24,13 @@ class TransactionProcessor
 
   def run
     logger.info "#{txn_str} start job"
-    @txn.update(status: 'Ingesting')
-    logger.info "#{txn_str} storing files in #{txn.stash_directory}"
+    txn.update(status: 'Ingesting')
+    logger.info "#{txn_str} ingesting files : #{txn.files}"
     process_deletes
     set_up
-    Dir.glob("#{txn.stash_directory}/add*.json").each do |update_file|
+    logger.info("Files in this transaction: #{txn.files}")
+    adds = txn.files.select { |f| File.basename(f).match?(/^add.*\.json$/) }
+    adds.each do |update_file|
       process_file(update_file)
     end
     cleanup
@@ -85,7 +87,7 @@ class TransactionProcessor
     count = 0
     Document.transaction do 
       Document.where(id: chunk).each do |goner|
-        goner.update(txn: @txn, deleted: true)
+        goner.update(txn: txn, deleted: true)
         count += 1
       end
     end
@@ -95,7 +97,8 @@ class TransactionProcessor
   def process_deletes
     logger.debug("#{txn_str} looking for delete files")
     total = 0
-    files = Dir.glob("#{txn.stash_directory}/delete*").each do |df|
+    files = txn.files.select { |f| File.basename(f).starts_with?('delete') }
+    files.each do |df|
       deletables = read_deletes(df)
       count = 0
       deletables.each_slice(500) do |chunk|
@@ -109,6 +112,7 @@ class TransactionProcessor
 
   def process_file(filename)
     File.open(filename) do |io|
+      logger.info("reading #{filename}")
       Document.transaction do
         Argot::Reader.new(io).each do |rec|
           if rec['local_id'].is_a?(String)

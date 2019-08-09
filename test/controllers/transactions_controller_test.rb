@@ -13,7 +13,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get index (authenticated)" do
-    sign_in @user
+    sign_in(@user)
     get transactions_url
     assert_response :success
   end
@@ -40,7 +40,7 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should show transaction (auth)" do
-    sign_in @user
+    sign_in(@user)
     get transaction_url(@transaction)
     assert_response :success
   end
@@ -51,9 +51,10 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy transaction" do
-    sign_in @user
+    #skip "Authentication fails here for deep dark mysterious reasons"
+    sign_in(@user)
     assert_difference('Transaction.count', -1) do
-      delete transaction_url(@transaction)
+      delete(transaction_path(@transaction))
     end
     assert_redirected_to transactions_url
   end
