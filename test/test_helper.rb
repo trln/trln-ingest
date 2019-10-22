@@ -2,6 +2,8 @@ ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'tempfile'
+require 'timecop'
+require 'pry-byebug'
 
 ActiveRecord::Migration.maintain_test_schema!
 

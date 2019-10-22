@@ -28,8 +28,8 @@ class Transaction < ApplicationRecord
     base_dir = options[:base_dir] || Rails.application.config.stash_directory
     day_dir = timestamp.strftime("%Y#{File::SEPARATOR}%m#{File::SEPARATOR}%d")
     self.status ||= 'New'
-    self.tag = generate_tag(timestamp) unless tag
-    self.stash_directory = File.join(base_dir, owner, day_dir, tag)
+    self.tag ||= generate_tag(timestamp)
+    self.stash_directory ||= File.join(base_dir, owner, day_dir, tag)
   end
 
   ##
