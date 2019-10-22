@@ -13,7 +13,7 @@ end
 
 gem 'rails', '~> 5.1.0'
 
-gem 'devise', '~> 4.6.0'
+gem 'devise', '~> 4.7'
 
 # adds authentication token features to devise;
 # can auth actions with a token instead of interactive
@@ -27,7 +27,6 @@ gem 'puma'
 # pagination of results
 gem 'kaminari'
 
-# gem 'will_paginate', '~> 3.1.6'
 
 # bootstrap styles
 #
@@ -74,9 +73,7 @@ gem 'hashids'
 
 # Gem that provides background processing features
 
-gem 'sidekiq'
-
-# gem 'pg', '>= 0.21'
+gem 'sidekiq', '~> 5.0'
 
 # Postgres 9.5+ native "upsert" support
 # there are other approaches, some of which involve creating CSV files
