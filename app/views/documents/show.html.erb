@@ -47,21 +47,26 @@
 	</dl>
 	<dl>
 	
-	<dt>Institutions</dt>
+	<dt><%= 'Institution'.pluralize(@content.institution&.length) %></dt>
 	<% @content.institution&.each do |i| %>
           <dd><%= i %></dd>
 	<% end %>
      </dl>
-	</div>
-    
 
-      <% if @content.virtual_collection && @content.virtual_collection.try(:first) %>
-      <ul>
-        <% @content.virtual_collection.each do |coll| %>
-        <li><%= coll %></li>
+    <% if @content.virtual_collection && @content.virtual_collection.try(:first) %>
+      <dl>
+        <dt>Virtual <%= 'Collection'.pluralize(@content.virtual_collection.length,) %></dt>
+          <% @content.virtual_collection&.each do |coll| %>
+        <dd><%= coll %></dd>
         <% end %>
-      </ul>
+      </dl>
       <% end %>
+  
+	
+  </div>
+
+
+
     </div>
   </div>
  
