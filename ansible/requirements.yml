@@ -1,0 +1,4 @@
+- src: rvm.ruby
+- src: galaxyproject.postgresql
+- src: geerlingguy.repo-epel
+

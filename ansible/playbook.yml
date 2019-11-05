@@ -1,0 +1,210 @@
+---
+- hosts: all
+  connection: local
+  become: true
+
+  roles:
+    - galaxyproject.postgresql
+    - geerlingguy.repo-epel
+    - rvm.ruby
+
+  vars:
+    app_install_dir: /vagrant
+    solr_version: 7.7.1
+    solr_lib_dir: "{{ app_install_dir }}/solr-dir/solr-{{ solr_version }}/server/solr/lib"
+    solr_contrib_dir: "{{ app_install_dir }}/solr-dir/solr-{{ solr_version }}/contrib"
+
+    solr_cloud_scripts_dir: "/vagrant/solr-dir/solr-{{ solr_version }}/server/scripts/cloud-scripts"
+    solr_configset_cmd: "zkcli.sh -zkhost localhost:9983 -cmd upconfig -confname trlnbib -confdir /home/{{ app_user }}/solr-config/trlnbib"
+
+    app_user: vagrant
+    app_group: "{{ app_user }}"
+    postgresql_flavor: pgdg
+    postgresql_version: 10
+    epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest={{ ansible_distribution_major_version }}.noarch.rpm"
+    epel_repo_gpg_key_url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+    epel_repofile_path: "/etc/yum.repos.d/epel.repo"
+
+    rvm1_rubies:
+      - 'ruby-2.5.1'
+
+    rvm1_bundler_install: true
+
+    rvm1_user: vagrant
+
+    ruby_install_gems:
+      - rake
+
+    rails_env:
+      DB_USER: shrindex
+      SECRET_KEY_BASE: "{{ lookup('password', '/dev/null length=64 chars=hexdigits') }}"
+      TRANSACTION_STORAGE_BASE: "/home/{{ app_user }}/spofford-data"
+      RAILS_ENV: development
+
+    yum_packages:
+      - epel-release
+      - git
+      - curl
+      - vim
+      - nano
+      - nodejs
+      - readline-devel
+      - redis
+      - dkms
+      - java-1.8.0-openjdk-headless
+      - libxml2-devel
+      - libxslt-devel
+      - sqlite-devel
+      - "postgresql{{postgresql_version}}-devel"
+      - libpqxx-devel
+      - yajl
+      - vim-enhanced
+      - wget
+      - python-psycopg2
+      - lsof
+
+  tasks:
+
+    - name: Install packages
+      package:
+        name: "{{ yum_packages }}"
+        state: latest
+
+    - name: Ensure redis service is enabled
+      systemd:
+        service: redis
+        enabled: true
+        state: started
+
+    - name: cd to "{{ app_install_dir }}" on login
+      lineinfile:
+        path: "/home/{{ app_user }}/.bash_profile"
+        line: cd "{{ app_install_dir }}"
+        state: present
+        insertafter: EOF
+
+    - name: set up pg_hba.conf
+      lineinfile:
+        path: "/var/lib/pgsql/{{ postgresql_version }}/data/pg_hba.conf"
+        regexp: '^(local\s+all\s+all\s+)peer'
+        line: '\1trust'
+        state: present
+        backrefs: true
+      register: pg_hba_edit
+
+    - name: restart postgres
+      systemd:
+        service: "postgresql-{{ postgresql_version }}"
+        state: restarted
+      when: pg_hba_edit.changed
+
+    - name: Create application postgres user
+      postgresql_user:
+        name: shrindex
+        state: present
+        # needs to be superuser to run rails tests
+        role_attr_flags: SUPERUSER
+
+    - name: Add environment entries to vagrant user
+      lineinfile:
+        path: "/home/{{ app_user }}/.bash_profile"
+        regexp: "^export {{ item.key }}"
+        line: "export {{ item.key }}=\"{{ item.value }}\""
+        state: present
+      loop: "{{ rails_env| dict2items }}"
+
+    - name: Configure bundler to build postgres
+      shell: "bash -lc 'bundle config build.pg --with-pg-config=/usr/pgsql-{{postgresql_version}}/bin/pg_config'"
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: Install gems for argon
+      shell: 'bash -lc "bundle install"'
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: Create database
+      shell: 'bash -lc "bundle exec rake db:create"'
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: Run database migrations
+      shell: 'bash -lc "bundle exec rake db:migrate"'
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: Create admin user
+      shell: 'bash -lc "bundle exec rake user:admin"'
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: stat solr install dir
+      stat:
+        path: "{{ app_install_dir }}/solr-dir/solr-{{ solr_version }}"
+      register: solr_install_stat
+
+    - name: Install solr via the solrtask gem
+      shell: ". ~/.bash_profile && bundle exec solrtask -v {{solr_version}} install"
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+      when: not solr_install_stat.stat.exists
+
+    - name: Ensure existence of solr solr lib dir
+      file:
+        path: "{{ solr_lib_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: 0755
+
+    - name: Copy needed contrib jars to solr lib dir
+      copy:
+        src: "{{ item }}"
+        dest: "{{ solr_lib_dir }}"
+        mode: 0755
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+      with_fileglob:
+        - "{{ solr_contrib_dir }}/analysis-extras/lib/*.jar"
+        - "{{ solr_contrib_dir }}/analysis-extras/lucene-libs/*icu-*.jar"
+
+    - name: Copy TRLN Discovery extension jars to solr lib dir
+      copy:
+        src: "{{ item }}"
+        dest: "{{ solr_lib_dir }}"
+        mode: 0755
+        owner: "{{ app_user }}"
+      with_fileglob:
+        - files/*.jar
+
+    - name: Start solr
+      shell: "bash -lc 'solrtask -v {{ solr_version }} start'"
+      args:
+        chdir: "{{ app_install_dir }}"
+      become_user: "{{ app_user }}"
+
+    - name: Pull latest argon configset (public) from github
+      git:
+        repo: https://github.com/trln/argon-solr-config
+        dest: "/home/{{ app_user }}/solr-config"
+        clone: true
+      become_user: "{{ app_user }}"
+
+    - name: Install Solr configset
+      shell: "bash -lc '{{ solr_cloud_scripts_dir }}/{{ solr_configset_cmd }}'"
+      args:
+        chdir: /vagrant
+      become_user: "{{ app_user }}"
+
+
+    - name: Create solr collection
+      shell: "bash -lc 'solr-dir/solr-{{ solr_version }}/bin/solr create_collection -n trlnbib -c trlnbib'"
+      args:
+        chdir: /vagrant
+      become_user: "{{ app_user }}"

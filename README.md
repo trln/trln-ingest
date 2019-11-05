@@ -12,39 +12,64 @@ of what you'll need installed on the target system, other than Ruby, of course.
    recent distribution.
  * Redis (for Sidekiq)
  * Yajl (for JSON processing)
- * Node.js (for Typescript in the asset pipeline; we dont' have any functional JS yet though)
+ * Node.js (for the asset pipeline, not as a server)
 
 ## Getting Started
 
 ### Vagrant
 
-Use[`vagrant`](https://www.vagrantup.com/) if you just need to get going.   Vagrant is a tool for managing virtual machines; it doesn't itself contain any 'virtualization' features, but it knows how to interact with several VM providers (e.g Virtualbox, 
-vmWare Fusion, things like that) and is intended to let you quickly set up a virtual environment.
+Use[`vagrant`](https://www.vagrantup.com/) if you just need to get going.
+Vagrant is a tool for managing virtual machines; it doesn't itself contain any
+'virtualization' features, but it knows how to interact with several VM
+providers (e.g Virtualbox, vmWare Fusion, things like that) and is intended to
+let you quickly set up a virtual environment.
 
-The `Vagrantfile` in this project does what it can to set up all the parts of the application for you.   _Especially_ if you _don't_ use vagrant, it's worth looking at the steps in this file to see what packages and services you'll need. 
+The `Vagrantfile` in this project does what it can to set up all the parts of
+the application for you.   _Especially_ if you _don't_ use vagrant, it's worth
+looking at the steps in this file to see what packages and services you'll
+need.  It uses the `ansible-local` provisioner to do a lot of the work, but there is still a step or two that you need to do manually.
 
 #### How Vagrant Works / a sort of glossary
 
 Vagrant provides hooks to download 'boxes' which are images of various
 operating systems; we use a plain Centos 7 image here, then use a
-*provisioning* script (defined as part of the `Vagrantfile`) to pull down updates, install
-various packages, and, generally get the virtual machine into a 'ready-to-run' state as quickly as possible.
+*provisioning* script (defined as part of the `Vagrantfile`) to pull down
+updates, install various packages, and, generally get the virtual machine into
+a 'ready-to-run' state as quickly as possible.
 
-Before executing `vagrant up` for the first time, if you're using Virtualbox as your VM provider,  make sure you have installed the `vagrant-vbguest` plugin: 
+In this case, the provisioner used is `ansible-local`, which installs Ansible
+into the VM and runs the playbook in the `ansible` directory.  This does not
+require having Ansible installed on your machine.  The Ansible playbook will install Ruby (via RVM), PostgreSQL, Redis, and all the other stuff mentioned above.
+
+It will also run `bundle install` on the Rails application and run the inital
+database setup, including creating a default admin account (see below).
+
+It will also install Solr and install the index configuration from TRLN's
+github.
+
+Since all of the above is quite a lot, some of which depends on external
+services behaving as they're expected to, it doesn't always work entirely
+smoothly.  The provisioner is intended to be re-runnable, so if something does fail due to external reasons, you can always re-run the provisioner (via `vagrant provision`).
+
+For everything else, of if you want to install things outside of the confines of Vagrant, you can look at `ansible/playbook.yml` to get a sense of what
+it's trying to do.
+
+Before executing `vagrant up` for the first time, if you're using Virtualbox as
+your VM provider,  make sure you have installed the `vagrant-vbguest` plugin: 
 
     $ vagrant plugin install vagrant-vbguest
 
 The plugin ensures that your VM will have the guest extension options, which
 makes filesystem mirroring between the host and guest more robust.
 
-To bring up the VM and provision it, once you've checked out this repository, change into its
-directory.  Open a terminal and type
+To bring up the VM and provision it, once you've checked out this repository,
+change into its directory.  Open a terminal and type
 
     $ vagrant up --provider virtualbox
-    
+
 I'll assume throughout you're using virtualbox as the 'provider', since that's
 available for macOS, Windows, and Linux.  Other providers may work (e.g. this
-has been tested under `libvirt` but that's Linux-only).
+has been tested under `libvirt` but that's Linux-only, and requires a tweak to the `Vagrantfile`).
 
 Once the vagrant VM's downloaded, updated, provisioned, and running, you can
 just type `vagrant ssh` in the working directory, and you'll be logged in as
@@ -60,33 +85,31 @@ Other vagrant commands you may find useful:
     $ vagrant destroy # stops the VM (if running) and deletes it 
     $ vagrant status # see which VMS are running
 
-`vagrant ssh` puts you in `/home/vagrant` on the guest VM.  The application
-directory will be mounted in the guest under `/vagrant`, and any changes you make to the files will
-be reflected in both host and guest.
+`vagrant ssh` puts you in `/vagrant` on the guest VM, which is mounted at the root of this repository.  This means you can edit files on the host machine using your favourite editor, and they will be made available 'inside' the VM.
 
-On first boot, you should have a `ruby` and `gem` executable on your PATH. Execute
-
-    $ /vagrant/install.sh
-
-(or)
-
-    $ cd /vagrant
-    $ ./install.sh
-
-And your environment should be ready to go, with all gems installed and database initialized. You'll still need to start sidekiq before you can start the application (see below).
+Once the provisioner is finished, you should be able to execute `./start.sh` to start the Rails application.
 
 One gem that might give you some trouble is the `pg` gem.  Check the
 `Vagrantfile` for some more hints that can help if it doesn't 'just work'.
 
 `bundle exec rake db:reset` may come in useful during development (clears databae and recreates tables).
 
-### Application Notes
+### Installing Solr
+
+The bundled Ansible playbook should install Solr with the necessary
+libraries to use TRLN Discovvery's solr configuration.  It should also install
+the *public* configset (which should normally be in sync with the one in actual
+use) from `trln/argon-solr-config`.  These operations might fail due to external circumstances, but usually re-running the provisioner will work.
+
+### Accessing your VM via a web browser
 
 Vagrant setup forwards port 3000 to port 3001 on the host, so opening your
 browser to http://localhost:3001 will let you interact with
-Spofford.
+Spofford.   In addition, the Solr instance will be forwarded to 8985 on the host, i.e. http://localhost:8985/solr
 
 ### Logging In
+
+(the below are run during VM provisioning)
 
 If you are running under Vagrant, and you have already created your database with 
 
@@ -102,39 +125,51 @@ looking in `lib/tasks/user.rake`; it will have admin privileges and be approved 
 
 #### Running Spofford 
 
-`bundle exec passenger start` to get started.
+    $ cd /vagrant && ./start.sh
+
+Use of the `start.sh` script is only for use during development.  Production
+deployments will need to separate out Sidekiq and Rails services.
 
 #### Spofford endpoints
 
-The index page shows the most recent 'transactions' (ingest package submissions).  Transaction pages have paths like `/transaction/:id`
+The index page shows the most recent 'transactions' (ingest package
+submissions).  Transaction pages have paths like `/transaction/:id`; 
 
 Once documents are ingested, they can be viewed at
 `http://localhost:3001/record/:id` where `:id` is the unique ID of the record, e.g. something like `NCCU1293879`.  This resulting page gives you a quick overview of the record's main characteristics and shows you the 'raw' Argot stored for it.  `/record` by itself will show you links to a bunch of recently updated records.
 
+Any of the above URLs can also be fetched as JSON via appending `.json` to them.
+
 #### Ingest 
 
-You can POST Argot flavoured concatenated JSON' to `http://localhost:3001/ingest/[institution code]` and it 
-will do some minimal pre-processing on your files, and stash them.  You can also POST a `.zip` file containing multiple JSON files.  ZIP entries matching the pattern `add*.json` will be interpreted as containing Argot records to be updated, while files named `delete*.json` will be interpreted as JSON arrays containing IDs (in the form 'NCSU234098')  to be deleted.
+You can POST Argot flavoured concatenated JSON' to
+`http://localhost:3001/ingest/[institution code]` and it will do some minimal
+pre-processing on your files, and stash them.  You can also POST a `.zip` file
+containing multiple JSON files and it will be processed as a unified ingest
+package ("transaction").
+
+ZIP entries matching the pattern `add*.json`
+will be interpreted as containing Argot records to be updated, while files
+named `delete*.json` will be interpreted as JSON arrays containing IDs (in the
+form 'NCSU234098')  to be deleted.
 
 Before returning, it will kick off an asynchronous process (via sidekiq) that ingests your documents.  You can monitor the progress of these jobs via Sidekiq.
-
-* Only adds/updates are currently supported when uploading JSON
-* This is not hooked up to Solr yet either
 
 See the [Spofford Client](https://github.com/trn/spofford-client`) for a tool that can handle many interactions with this service, including the assembly and ingest of ingest packages from the command line.
 
 ### Sidekiq
 
-Sidekiq must be running before you start your Rails process, if you want to process ingest packages.  Currently this is not set up as an automatically running system service, so you'll need to, in a separate VM session, execute the following:
+Sidekiq must be running before you start your Rails process, if you want to
+process ingest packages.
 
     $ cd /vagrant
     $ bundle exec sidekiq
 
-If you don't, your uploads will get processed but nothing will happen with them.
+(this is done in the start script)  If you don't, your uploads will get stored,
+but the records won't be ingested into the databse and nothing will get put into Solr.
 
 The status of sidekiq and all its jobs is
-available at `/sidekiq`.  This URL will need to be secured for production
-purposes.
+available at `http://localhost:3001/sidekiq`.  This URL will need to be secured for production purposes.
 
 During development, you may find the custom rake task `util:clear_sidekiq`
 useful; Sidekiq has a 'retry' feature which will try to re-run any failed jobs,
@@ -199,7 +234,7 @@ stanza:
 
 ```
 # assuming service name == 'trln-ingest'
-EnvrironmentFile=/etc/default/trln-ingest 
+EnvironmentFile=/etc/default/trln-ingest 
 PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_STORAGE_BASE
 ```
 
@@ -209,12 +244,19 @@ your deployment environment and copy those into your deployment directory
 
 ### Testing
 
-Tests should be run from inside the VM, if possible, but if you are not doing
-so and are willing to set up PostgreSQL in teh right way (see the provisioning
-scripts in `Vagrantfile`, you can run them from outside.  By default, testing
-will create a database called 'shrindex_testing' which will be deleted at the
-end of the run.  Ensure that the database user in the `test` environment has
-the requisite permissions.
+Tests (`bundle exec rake test`) should be run from inside the VM, if possible,
+largely because some of them depend on the database being available at
+`localhost`   If youare willing to set up PostgreSQL in the right way (see the
+provisioning steps in `ansible/playbook.yml` relating to `pg_hba.conf` and
+`postgresql.conf`) on your machine, you can run them from outside.
+
+The bundled `.travis-ci.yml` ensures that Postgres is installed when running
+the continuous integration builds that happen when you create a pull request in
+GitHub.
+
+Testing creates a database called `shrindex_testing` which will be deleted at
+the end of the run.  Ensure that the database user in the `test` environment
+has the requisite permissions.
 
     $ bundle exec rake test
 
@@ -225,5 +267,6 @@ manually:
 
     $ curl -v -H'Content-type: application/json' --data-binary @<file> http://localhost:3001/ingest/unc
 
-(-v is optional, but can help to read what's going on in case anything fails)
+Replace `unc` with the name of your institution; `-v` is optional, but can help to read what's going on in case anything fails.
+
 If you have a `.zip` file, change "application/json" to "application/zip".

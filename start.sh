@@ -10,14 +10,26 @@
 
 export RUBY_OPTS=''
 
-export SOLR_DIR=solr-dir/solr-7.3.1
+while getopts ":c"  opt; do
+	case ${opt} in
+		c )
+			echo "deleting old log files"
+			rm -f logs/*
+			;;
+		\? )
+			echo "Unknown option -$OPTARG"
+			;;
+	esac
+done
+
+export SOLR_DIR=solr-dir/solr-7.7.1
 
 if [ -d "$SOLR_DIR" ]; then
   echo "Ensuring Solr is running"
   SOLR_BIN="$SOLR_DIR/bin/solr"
   if [ -e "$SOLR_BIN" ]; then
     echo "Hey I found solr binary at $SOLR_BIN"
-solr-dir/solr-7.3.1/bin/solr status
+solr-dir/solr-7.7.1/bin/solr status
     RESULT=`$SOLR_BIN status`
     STATUS=$?
     if [ "$STATUS" != "0" ]; then
@@ -27,10 +39,6 @@ solr-dir/solr-7.3.1/bin/solr status
     fi
   fi
 fi
-
-
-
-
 
 # Primary difference in the default setup between production and development
 # is amount of logging and whether the application will recompile assets and

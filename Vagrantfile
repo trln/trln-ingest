@@ -11,6 +11,8 @@ VAGRANT_CONFIG_API_VERSION = 2
 # you're doing.
 Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
 
+  config.ssh.config = 'ssh_config'
+
   config.vm.box = "centos/7"
 
   # empty but it gives the VM a name
@@ -58,7 +60,7 @@ Vagrant.configure(VAGRANT_CONFIG_API_VERSION) do |config|
     # Display the VirtualBox GUI when booting the machine
     vb.gui = false
     # Customize the amount of memory on the VM:
-    vb.memory = "2048"
+    vb.memory = "4096"
   end
   #
   # View the documentation for the provider you are using for more
@@ -113,97 +115,10 @@ TMPL
         end
   end
 
-  ruby_version = if File.exist?('.ruby-version')
-                   File.read('.ruby-version')
-                 else
-                   '2.5.1'
-                 end
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", inline: <<-SHELL
-     RUBYVER=#{ruby_version}
-     HOMEDIR=/home/vagrant
-     echo '#{dbpw}' > "${HOMEDIR}/.dbpassword"
-     chown vagrant.vagrant ${HOMEDIR}/.dbpassword
-     chmod 0600 ${HOMEDIR}/.dbpassword
-     yum update -y
-
-     # enable EPEL repository (packages)
-     # wget and C++ compilers to compile ruby and native gems
-     # after 'automake', the packages are those that *would be* installed
-     # by ruby-install; they are required for our precompiled ruby to 
-     # work
-     yum install -y epel-release git wget gcc-c++ automake gdbm-devel libffi-devel libyaml-devel ncurses-devel openssl-devel readline-devel lsof kernel-devel kernel-headers dkms java-1.8.0-openjdk-headless
-
-     # we can only install redis *after* the epel-release repository has been installed
-     # redis is used by sidekiq
-     yum install -y redis
-
-     # make sure redis is running by default
-     systemctl enable redis.service
-     systemctl start redis.service
-
-     if [ ! -d "/vagrant/rpms" ]; then
-        echo "Fetching compiled packages from github"
-        sudo -u vagrant git clone https://github.com/trln/local-rpms "/vagrant/rpms"
-     fi
-
-     echo "Installing RPMS"
-     pushd "/vagrant/rpms"
-     rpm -Uvh *.rpm
-     if [ -e scripts/chruby.sh ]; then
-      install -o root -g root -m 0755 scripts/chruby.sh /etc/profile.d/chruby.sh
-     fi
-     RUBIESDIR="${HOMEDIR}/.rubies"
-
-     # now unpack the ruby tarball; this tarball
-     # was created by compiling ruby on an indentical VM
-     # with the ruby-install command, so it should be 
-     # identical to what we'd get if we tried that on this machine
-     [[ ! -d "${RUBIESDIR}" ]] && sudo -u vagrant mkdir -m 0755 "${RUBIESDIR}"
-     TARBALL="$HOMEDIR/rpms/ruby-${RUBYVER}-compiled.tar.gz"
-     if [ -e "$TARBALL" ]; then
-       if [ ! -d "${RUBIESDIR}/ruby-${RUBYVER}" ]; then
-        cd ${RUBIESDIR}
-        sudo -u vagrant tar xzf ${HOMEDIR}/rpms/ruby-${RUBYVER}-compiled.tar.gz
-        popd
-       fi
-     else
-      ruby-install -L
-      ruby-install ruby-${RUBYVER}
-     fi
-
-     # the next bit adds the Postgresql yum repository
-     # which gives us access to more recent versions of postgres
-     # then enables it as a service and starts it
-
-     # URLs will need to be updated manually when there's a new version
-     # paths may (for point release upgrades) also change, but this is
-     # not easily mechanizable in this script
-     rpm -ivh https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm
-     sudo yum install -y libxml2-devel libxslt-devel sqlite-devel postgresql95-server postgresql95-devel libpqxx-devel yajl vim-enhanced wget nodejs
-     if [ ! -f /var/lib/pgsql/9.5/data/pg_hba.conf ]; then 
-         /usr/pgsql-9.5/bin/postgresql95-setup initdb
-         cp /vagrant/postgres-setup.sql /tmp
-         sudo perl -pi.bak -e 's/(local\\s+all\\s+all\\s+)peer/$1trust/' /var/lib/pgsql/9.5/data/pg_hba.conf
-         systemctl enable postgresql-9.5.service
-         systemctl start postgresql-9.5.service
-         cd /tmp
-         sudo -u postgres /usr/bin/psql < /tmp/postgres-setup.sql
-     fi
-     export RCFILE=${HOMEDIR}/.bash_profile
-     if [ -z "$(grep chruby $RCFILE)" ]; then
-        echo ''  >> $RCFILE
-        echo '# Added by provisioner' >> $RCFILE
-        echo 'chruby ruby' >> $RCFILE
-     fi
-     if [ -z "$(grep pgsql-9.5 $RCFILE)" ]; then
-        echo '' >> $RCFILE
-        echo '# Added by provisioner' >> $RCFILE
-        echo 'export PATH="\${PATH}":/usr/pgsql-9.5/bin' >> $RCFILE
-     fi
-     echo "Run /vagrant/install.sh next after you log in to set up the Rails dependencies"
-  SHELL
+  config.vm.provision("ansible_local") do |ansible|
+      ansible.compatibility_mode = '2.0'
+      ansible.playbook = "ansible/playbook.yml"
+      ansible.galaxy_role_file = 'ansible/requirements.yml'
+      ansible.verbose = '-vvv'
+  end
 end

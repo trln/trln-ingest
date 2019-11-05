@@ -14,13 +14,11 @@
 
 .ruby-version
 
-
 # Ignore the default SQLite database.
 /db/*.sqlite3
 /db/*.sqlite3-journal
 
 # Ignore all logfiles and tempfiles.
-/bin/
 /log/*
 /tmp/*
 !/log/.keep
@@ -30,11 +28,21 @@
 .byebug_history
 
 # Local customizations
+#
+ansible/roles/*
+
+# might be 
+trln-config/
+# Where Solr is installed
+solr-dir/
+# Where public Solr configuration is downloaded 
+argon-solr-config
+
+
 
 config/local_env.yml
 comfig/mappings 
 config/mappings/
-solr-dir
 .password
 postgres-setup.sql
 *.sublime-*

@@ -34,7 +34,7 @@ namespace :user do
       )
     else
       warn "Admin user already created.  use :list task to find them"
-      exit 1
+      exit 0
     end
   end
 end
