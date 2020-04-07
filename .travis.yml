@@ -1,6 +1,3 @@
-before_install:
-  - gem install bundler
-
 language: ruby
 rvm:
   - 2.5.1
@@ -11,6 +8,10 @@ addons:
 
 services:
   - redis-server
+
+before_install:
+  - yes | gem update --system --force
+  - gem install bundler
 
 before_script:
   - psql -c "create user shrindex;" -U postgres
