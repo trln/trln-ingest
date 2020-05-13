@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: 7009ca1be3426d316c031f1d2a0eea564b53d952
+  revision: 7fff156ff54171f350b6e39c2c97a54e82dad508
   specs:
-    argot (1.0.1)
+    argot (1.0.2)
       nokogiri (~> 1.10)
       rsolr (~> 1.1, >= 1.1.2)
       rubyzip (~> 1.2)
@@ -250,7 +250,7 @@ GEM
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.6)
+    unf_ext (0.0.7.7)
     warden (1.2.8)
       rack (>= 2.0.6)
     web-console (3.7.0)
@@ -262,7 +262,7 @@ GEM
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.4)
     yajl-ruby (1.4.1)
-    yell (2.2.0)
+    yell (2.2.2)
 
 PLATFORMS
   ruby
