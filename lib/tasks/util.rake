@@ -21,4 +21,10 @@ namespace :util do
     
     deleted_records.delete_all
   end
+
+  desc 'Delete unneeded transactions. Run once a month in production.'
+  task delete_transactions: :environment do
+    TransactionPurgeWorker.perform_async()   
+  end
 end
+
