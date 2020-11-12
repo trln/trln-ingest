@@ -88,7 +88,8 @@ gem 'active_record_upsert', platform: :mri
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
 
-gem 'argot', '>= 0.3.9', github: 'trln/argot-ruby'
+# gem 'argot', '>= 0.3.9', github: 'trln/argot-ruby'
+gem 'argot', github: 'trln/argot-ruby', branch: 'TD-1006-name-authority'
 
 gem 'solrtasks', github: 'trln/solrtasks'
 
@@ -124,6 +125,8 @@ group :test do
   gem 'pry-byebug'
   #gem 'warden'
   gem 'timecop', '~> 0.9.1'
+  gem 'mock_redis', '~> 0.27'
+  gem 'minitest-stub-const'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
