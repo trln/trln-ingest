@@ -8,12 +8,12 @@ on:
       postgres:
         image: postgres:9.5
         env:
-          POSTGRES_USER: shrindex
-          POSTGRES_DB: shrindex_testing
+          DB_USER: shrindex
+          DB_NAME: shrindex_testing
           RAILS_ENV: test
         run: bundle exec rake db:setup  
         ports:
-          -5432:5432  
+          - 5432:5432  
       redis:
         image: redis
         # Set health checks to wait until redis has started
@@ -41,6 +41,8 @@ jobs:
         node-version: '12.x'
     - name: Install dependencies
       run: bundle install
+    - name: Start postgresql
+      run: sudo systemctl start postgresql  
     - name:
       run: bundle exec rails db:migrate RAILS_ENV=test
     - name: Run tests
