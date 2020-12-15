@@ -10,6 +10,8 @@ on:
         env:
           POSTGRES_USER: shrindex
           POSTGRES_DB: shrindex_testing
+          RAILS_ENV: test
+        run: bundle exec rake db:setup  
         ports:
           -5432:5432  
       redis:
