@@ -10,6 +10,8 @@ on:
         env:
           POSTGRES_USER: shrindex
           POSTGRES_DB: shrindex_testing
+        ports:
+          -5432:5432  
       redis:
         image: redis
         # Set health checks to wait until redis has started
