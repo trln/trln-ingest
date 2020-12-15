@@ -22,12 +22,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: [ 2.5.1, 2.6.3 ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: [ 2.5.1, 2.6.3 ]
+        ruby-version: ${{ matrix.ruby }}
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
