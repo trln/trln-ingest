@@ -45,7 +45,7 @@ jobs:
       run: |
         yes | gem update --system --force
         gem install bundler
-        bundle update
+        bundle install
     - name: Start postgresql
       run: sudo systemctl start postgresql  
     - name: Run tests
