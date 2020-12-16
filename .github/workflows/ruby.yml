@@ -34,7 +34,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'    
-   - name: Build and test with Rake
+    - name: Build and test with Rake
       env:
         PGHOST: 127.0.0.1
         PGUSER: postgres
