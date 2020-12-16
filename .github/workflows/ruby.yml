@@ -38,15 +38,15 @@ jobs:
         sudo apt-get -yqq install libpq-dev
         yes | gem update --system --force
                   
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundler install
+    - name: Install dependencies
+      run: |
+        gem install bundler
+        bundler install
 
-      - name: Create database
-        run: |
-          bundler exec rails db:create RAILS_ENV=test
-          bundler exec rails db:migrate RAILS_ENV=test
-          
-      - name: Run tests
-        run: bundler exec rake
+    - name: Create database
+      run: |
+        bundler exec rails db:create RAILS_ENV=test
+        bundler exec rails db:migrate RAILS_ENV=test
+
+    - name: Run tests
+      run: bundler exec rake
