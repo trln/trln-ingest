@@ -33,15 +33,19 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: '12.x'       
+        node-version: '12.x'
+
+    - name: Install PostgreSQL 11 client
+      run: |
+        sudo apt-get -yqq install libpq-dev
+        yes | gem update --system --force
+                  
     - name: Build and test with Rake
       env:
         PGUSER: postgres
+        PGHOST: localhost
         RAILS_ENV: test
       run: |
-        yes | gem update --system --force
-        sudo apt-get -yqq install libpq-dev
-        sudo systemctl start postgresql
         gem install bundler
         bundle install --jobs 4 --retry 3
         bundle exec rails db:create
