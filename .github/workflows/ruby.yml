@@ -5,13 +5,8 @@ on:
   pull_request:
 
     services:
-      postgres:
+      db:
         image: postgres:9.5
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: postgres
-          RAILS_ENV: test
-        run: bundle exec rails db:migrate
         ports:
           - 5432:5432  
       redis:
@@ -39,12 +34,15 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12.x'    
-    - name: Install dependencies
+   - name: Build and test with Rake
+      env:
+        PGHOST: 127.0.0.1
+        PGUSER: postgres
+        RAILS_ENV: test
       run: |
-        yes | gem update --system --force
+        sudo apt-get -yqq install libpq-dev
         gem install bundler
-        bundle install
-    - name: Start postgresql
-      run: sudo systemctl start postgresql  
-    - name: Run tests
-      run: bundle exec rake test
+        bundle install --jobs 4 --retry 3
+        bundle exec rails db:create
+        bundle exec rails db:migrate
+        bundle exec rails test
