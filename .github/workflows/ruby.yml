@@ -23,7 +23,8 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-           
+        env:
+          POSTGRES_PASSWORD: l0lIhaveAdminNow
       redis:
         image: redis
         options: >-
