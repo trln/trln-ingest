@@ -27,7 +27,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
       redis:
         image: redis
         options: >-
@@ -65,9 +65,9 @@ jobs:
           bundler exec rails db:create RAILS_ENV=test
           bundler exec rails db:migrate RAILS_ENV=test
         env:
-          APP_POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }}
+          APP_POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
 
       - name: Run tests
         run: bundler exec rake
         env:
-          APP_POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }} 
+          APP_POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }} 
