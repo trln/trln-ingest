@@ -86,7 +86,9 @@
     - name: set up pg_hba.conf
       lineinfile:
         path: "/var/lib/pgsql/{{ postgresql_version }}/data/pg_hba.conf"
-        regexp: '^(local\s+all\s+all\s+)peer'
+        # This is wildly insecure but should be OK in the context
+        # of running in Vagrant
+        regexp: '^(local|host\s+all\s+all\s+)peer'
         line: '\1trust'
         state: present
         backrefs: true
