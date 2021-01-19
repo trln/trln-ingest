@@ -3,7 +3,7 @@
 Spofford is a Rails application for ingesting and enhancing bibliographic
 records for the Triangle Research Libraries Network (TRLN).
 
-Continuous Integration Status: https://github.com/trln/trln-ingest/workflows/CI/badge.svg
+![Continuous Integration Status](https://github.com/trln/trln-ingest/workflows/CI/badge.svg)
 
 Setup is currently handled via Vagrant, but here's at least a partial list
 of what you'll need installed on the target system, other than Ruby, of course.
