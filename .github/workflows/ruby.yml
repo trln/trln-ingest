@@ -12,6 +12,9 @@ jobs:
     strategy:
       matrix:
         ruby: [ 2.5.1, 2.6.3 ]
+    
+    env:
+      POSTGRES_PASSWORD: l0lIhaveAdminNow 
         
     services:
       db:
@@ -24,7 +27,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_PASSWORD: l0lIhaveAdminNow
+          POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }}
       redis:
         image: redis
         options: >-
@@ -47,7 +50,7 @@ jobs:
         with:
           node-version: '12.x'
 
-      - name: Install PostgreSQL 11 client
+      - name: Install PostgreSQL client
         run: |
           sudo apt-get -yqq install libpq-dev
           yes | gem update --system --force
@@ -61,6 +64,10 @@ jobs:
         run: |
           bundler exec rails db:create RAILS_ENV=test
           bundler exec rails db:migrate RAILS_ENV=test
+        env:
+          APP_POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }}
 
       - name: Run tests
         run: bundler exec rake
+        env:
+          APP_POSTGRES_PASSWORD: ${{ jobs.test.env.POSTGRES_PASSWORD }} 
