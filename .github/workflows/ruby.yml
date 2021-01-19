@@ -4,17 +4,7 @@ on:
   push:
   pull_request:
 
-    services:
-      db:
-        image: postgres:9.5
-        ports: ["5432:5432"]
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5      
+    
 
 jobs:
   test:
@@ -22,31 +12,54 @@ jobs:
     strategy:
       matrix:
         ruby: [ 2.5.1, 2.6.3 ]
+        
+    services:
+      db:
+        image: postgres:10.15
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+           
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379      
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
+      - name: Check code out
+        uses: actions/checkout@v2
+    
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
 
-    - name: Install PostgreSQL 11 client
-      run: |
-        sudo apt-get -yqq install libpq-dev
-        yes | gem update --system --force
+      - name: Install PostgreSQL 11 client
+        run: |
+          sudo apt-get -yqq install libpq-dev
+          yes | gem update --system --force
                   
-    - name: Install dependencies
-      run: |
-        gem install bundler
-        bundler install
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundler install
 
-    - name: Create database
-      run: |
-        bundler exec rails db:create RAILS_ENV=test
-        bundler exec rails db:migrate RAILS_ENV=test
+      - name: Create database
+        run: |
+          bundler exec rails db:create RAILS_ENV=test
+          bundler exec rails db:migrate RAILS_ENV=test
 
-    - name: Run tests
-      run: bundler exec rake
+      - name: Run tests
+        run: bundler exec rake
