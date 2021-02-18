@@ -41,7 +41,6 @@ namespace :util do
     desc 'Rebuild name authority Redis store'
     task rebuild: :environment do
       Rake::Task['util:lcnaf:download'].invoke
-      Rake::Task['util:lcnaf:unzip'].invoke
       Rake::Task['util:lcnaf:add_to_redis'].invoke
       Rake::Task['util:lcnaf:cleanup_files'].invoke
     end
@@ -57,44 +56,40 @@ namespace :util do
       end
     end
 
-    desc 'Unzip LC Name Authority File (lcnaf.madsrdf.ndjson)'
-    task unzip: :environment do
-      Zip.on_exists_proc = true
-      Zip::File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") do |zipfile|
-        zipfile.each do |entry|
-          puts "Extracting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip to #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
-          entry.extract("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}")
-        end
-        puts "Unzip complete"
-      end
-    end
 
     desc 'Add to Redis variant names from LC Name Authority File (lcnaf.madsrdf.ndjson)'
     task add_to_redis: :environment do
-      puts "Adding LCNAF variant names to Redis"
+      puts "Adding LCNAF variant names to Redis."
+      puts "Progress shown by printing one entry per 2,500."
 
-      File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}", 'r').each do |line|
-        rdf = JSON.parse(line).fetch('@graph', [])
+      Zip::File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") do |zip|
+        zip.select { |entry| entry.name == DEFAULT_FILENAME }.each do |e|
+          e.get_input_stream.each_with_index do |line, index|
+            rdf = JSON.parse(line).fetch('@graph', [])
 
-        names = personal_names(rdf) if rdf
-        id = names.first.fetch('@id', '').sub('http://id.loc.gov/authorities/names/', 'lcnaf:') if names.first
-        ids = has_variant_ids(names) if names
-        labels = variant_labels(rdf, ids)
+            names = personal_names(rdf) if rdf
+            id = names.first.fetch('@id', '')
+                      .sub('http://id.loc.gov/authorities/names/', 'lcnaf:') if names.first
+            ids = has_variant_ids(names) if names
+            labels = variant_labels(rdf, ids)
 
-        unless (labels.nil? || labels.empty?)
-          REDIS.set(id, labels)
-          puts "#{id}:#{labels}"
+            unless (labels.nil? || labels.empty?)
+              REDIS.set(id, labels)
+              puts "#{id}:#{labels}" if index % 2500 == 0
+            end
+          end
         end
       end
       puts "Completed adding LCNAF variant names to Redis"
     end
 
-    desc 'Cleanup LC Name Authority files (deletes lcnaf.madsrdf.ndjson & lcnaf.madsrdf.ndjson.zip)'
+    desc 'Cleanup LC Name Authority files (deletes lcnaf.madsrdf.ndjson.zip)'
     task cleanup_files: :environment do
-      puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME} and #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
-      File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}") if File.exists? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
-      File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") if File.exists? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
-      puts "Deleted LCNAF files"
+      puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
+      if File.exists? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
+        File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip")
+      end
+      puts "Deleted LCNAF file."
     end
 
     desc 'Flush LC Name Authority entries from Redis.'
