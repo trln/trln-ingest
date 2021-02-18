@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+    
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: [ 2.5.1, 2.6.3 ]
+    
+    env:
+      POSTGRES_PASSWORD: l0lIhaveAdminNow 
+        
+    services:
+      db:
+        image: postgres:10.15
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379      
+    steps:
+      - name: Check code out
+        uses: actions/checkout@v2
+    
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get -yqq install libpq-dev
+          yes | gem update --system --force
+                  
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundler install
+
+      - name: Create database
+        run: |
+          bundler exec rails db:create RAILS_ENV=test
+          bundler exec rails db:migrate RAILS_ENV=test
+        env:
+          APP_POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+
+      - name: Run tests
+        run: bundler exec rake
+        env:
+          APP_POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }} 

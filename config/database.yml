@@ -29,9 +29,11 @@ test:
   adapter: postgresql
   encoding: unicode
   database: shrindex_testing
+  host: localhost
+  port: 5432
   pool: 1
   username: postgres 
-  #password: <%= ENV['APP_POSTGRES_PASSWORD'] %>
+  password: <%= ENV.fetch('APP_POSTGRES_PASSWORD', '<fakepassword>') %>
 
 production:
   <<: *vagrant
