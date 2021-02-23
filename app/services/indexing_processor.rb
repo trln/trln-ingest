@@ -41,15 +41,18 @@ class IndexingProcessor
       end
     end
     contenter = Argot::Transformer.new(&:content)
+    enricher = Spofford::AuthorityEnricher.new.as_block
     flattener = Argot::Flattener.new.as_block
     suffixer = Argot::Suffixer.new.as_block
 
+    enrichen = Argot::Transformer.new(&enricher)
     flatten = Argot::Transformer.new(&flattener)
     suffix = Argot::Transformer.new(&suffixer)
+
     solr_filter = Spofford::SolrValidator.new do |rec, err|
       logger.info("Record #{rec['id']} rejected: #{err.to_json}")
     end
-    Argot::Pipeline.new | deleter | contenter | flatten | suffix | solr_filter
+    Argot::Pipeline.new | deleter | contenter | enrichen | flatten | suffix | solr_filter
   end
   # rubocop:enable AbcSize, MethodLength
 

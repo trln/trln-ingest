@@ -4,9 +4,11 @@ require 'spofford/deepstruct'
 
 # Top level namespace for Spofford (trln-ingest) specific features.
 module Spofford
+  autoload :AuthorityEnricher, 'spofford/authority_enricher'
   autoload :Chunker, 'spofford/record_chunker'
   autoload :IngestHelper, 'spofford/ingest_helper'
   autoload :LazyWriter, 'spofford/lazy_writer'
+  autoload :ScriptClassifier, 'spofford/script_classifier'
   autoload :SolrValidator, 'spofford/solr_validator'
   autoload :ArgotViewer, 'spofford/argot_viewer'
 

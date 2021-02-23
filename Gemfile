@@ -124,6 +124,8 @@ group :test do
   gem 'pry-byebug'
   #gem 'warden'
   gem 'timecop', '~> 0.9.1'
+  gem 'mock_redis', '~> 0.27'
+  gem 'minitest-stub-const'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

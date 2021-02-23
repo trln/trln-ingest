@@ -1,5 +1,6 @@
 require 'test_helper'
 require 'spofford'
+require 'mock_redis'
 
 # rubocop you so crazy
 class IngestHelperTest < ActiveSupport::TestCase
@@ -31,3 +32,43 @@ class IngestHelperTest < ActiveSupport::TestCase
     assert data['owner'] == 'test', 'owner should be "test"'
   end
 end
+
+class AuthorityEnricherTest < ActiveSupport::TestCase
+  setup do
+    Spofford::AuthorityEnricher.stub_const(:REDIS, MockRedis.new) do
+      Spofford::AuthorityEnricher::REDIS.set('foo', ['foo1'])
+      Spofford::AuthorityEnricher::REDIS.set('bar', ['bar1'])
+      enricher = Spofford::AuthorityEnricher.new
+      input = { 'names' => [{ 'id' => 'foo' }, { 'id' => 'bar' }]}
+      @output = enricher.process(input)
+      Spofford::AuthorityEnricher::REDIS.del('foo', 'bar')
+    end
+  end
+
+  test 'variant_names are added' do
+    assert @output['variant_names'] == [{ 'value' => 'foo1' }, { 'value' => 'bar1' }]
+  end
+
+  test 'names are passed through' do
+    assert @output['names'] == [{ 'id' => 'foo' }, { 'id' => 'bar' }]
+  end
+end
+
+class ScriptClassifierTest < ActiveSupport::TestCase
+  test 'Roman characters are not classified' do
+    assert Spofford::ScriptClassifier.new('English').classify == nil
+  end
+
+  test 'Arabic characters are classified' do
+    assert Spofford::ScriptClassifier.new('حسن').classify == 'ara'
+  end
+
+  test 'Cyrillic characters are classified' do
+    assert Spofford::ScriptClassifier.new('история').classify == 'rus'
+  end
+
+  test 'CJK characters are classified' do
+    assert Spofford::ScriptClassifier.new('東京').classify == 'cjk'
+  end
+end
+
