@@ -88,8 +88,7 @@ gem 'active_record_upsert', platform: :mri
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
 
-# gem 'argot', '>= 0.3.9', github: 'trln/argot-ruby'
-gem 'argot', github: 'trln/argot-ruby', branch: 'TD-1006-name-authority'
+gem 'argot', '>= 0.3.9', github: 'trln/argot-ruby'
 
 gem 'solrtasks', github: 'trln/solrtasks'
 

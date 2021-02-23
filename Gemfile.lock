@@ -1,7 +1,6 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: 731249eceae11c9542c91e33648389f69888f94a
-  branch: TD-1006-name-authority
+  revision: d07175422e24301a188c78645f12ed6f6d5e81d1
   specs:
     argot (1.0.5)
       nokogiri (~> 1.10)
@@ -276,7 +275,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_record_upsert
-  argot!
+  argot (>= 0.3.9)!
   bootstrap (~> 4.3.0)
   byebug
   devise (~> 4.7)
