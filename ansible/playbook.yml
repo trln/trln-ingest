@@ -42,7 +42,6 @@
       RAILS_ENV: development
 
     yum_packages:
-      - epel-release
       - git
       - curl
       - vim
@@ -63,6 +62,14 @@
       - python-psycopg2
       - lsof
 
+  pre_tasks:
+    - name: Install high priority packages
+      package:
+        name:
+          - epel-release
+          - centos-release-scl-rh
+        state: latest
+
   tasks:
 
     - name: Install packages
@@ -79,7 +86,7 @@
     - name: cd to "{{ app_install_dir }}" on login
       lineinfile:
         path: "/home/{{ app_user }}/.bash_profile"
-        line: cd "{{ app_install_dir }}"
+        line: "cd {{ app_install_dir }}"
         state: present
         insertafter: EOF
 
@@ -88,10 +95,15 @@
         path: "/var/lib/pgsql/{{ postgresql_version }}/data/pg_hba.conf"
         # This is wildly insecure but should be OK in the context
         # of running in Vagrant
-        regexp: '^(local|host\s+all\s+all\s+)peer'
-        line: '\1trust'
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
         state: present
         backrefs: true
+      with_items:
+        # tcp/ip connections for IPv6 and IPv4
+        - { regexp: '^(host\s+all\s+all\s+[0-9:./]+\s+)ident', line: '\1trust' }
+        - { regexp: '^((?:local|host)\s+all\s+all\s+)peer', line: '\1trust' }
+
       register: pg_hba_edit
 
     - name: restart postgres
@@ -151,7 +163,7 @@
       register: solr_install_stat
 
     - name: Install solr via the solrtask gem
-      shell: ". ~/.bash_profile && bundle exec solrtask -v {{solr_version}} install"
+      shell: 'bash -lc "bundle exec solrtask -v {{solr_version}} install"'
       args:
         chdir: "{{ app_install_dir }}"
       become_user: "{{ app_user }}"
@@ -186,7 +198,7 @@
         - files/*.jar
 
     - name: Start solr
-      shell: "bash -lc 'solrtask -v {{ solr_version }} start'"
+      shell: "bash -lc 'bundle exec solrtask -v {{ solr_version }} start'"
       args:
         chdir: "{{ app_install_dir }}"
       become_user: "{{ app_user }}"
@@ -204,9 +216,18 @@
         chdir: /vagrant
       become_user: "{{ app_user }}"
 
+    - name: Query solr for collections
+      uri:
+        url: http://localhost:8983/solr/admin/collections?action=list
+        return_content: yes
+      register: list_cmd
 
+    - name: show API result
+      debug:
+        msg: "{{ list_cmd }}"
     - name: Create solr collection
       shell: "bash -lc 'solr-dir/solr-{{ solr_version }}/bin/solr create_collection -n trlnbib -c trlnbib'"
       args:
         chdir: /vagrant
       become_user: "{{ app_user }}"
+      when: "'trlnbib' not in (list_cmd.content | from_json)['collections']"
