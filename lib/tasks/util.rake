@@ -36,7 +36,7 @@ namespace :util do
     DEFAULT_FILENAME = 'lcnaf.madsrdf.ndjson'
     DEFAULT_SOURCE = "https://lds-downloads.s3.amazonaws.com/#{DEFAULT_FILENAME}.zip"
     DEFAULT_DESTINATION = File.join(ENV.fetch('LCNAF_BASE', File.join(ENV['HOME'], 'trln-lcnaf')))
-    REDIS = Redis.new(host: ENV.fetch('REDIS_URL', '127.0.0.1'))
+    REDIS = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
     desc 'Rebuild name authority Redis store'
     task rebuild: :environment do
