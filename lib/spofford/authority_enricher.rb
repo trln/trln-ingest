@@ -2,7 +2,7 @@ module Spofford
   class AuthorityEnricher
     include Argot::Methods
 
-    REDIS = Redis.new(host: ENV.fetch('REDIS_URL', '127.0.0.1'))
+    REDIS = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
     # NOTE: At present this just handles names fields with an id.
     #       I could imagine a future implementation where other
