@@ -10,12 +10,16 @@ module Spofford
     #       on settings in an (argot-ruby?) configuration file.
     #       For now keeping it simple.
     def process(input)
-      authority_values = input.fetch('names', []).map do |name|
-        variant_names(name['id']) if name.fetch('id', nil)
-      end.flatten.compact
+      begin
+        authority_values = input.fetch('names', []).map do |name|
+          variant_names(name['id']) if name.fetch('id', nil)
+        end.flatten.compact
 
-      if authority_values.present?
-        input['variant_names'] = authority_values
+        if authority_values.present?
+          input['variant_names'] = authority_values
+        end
+      rescue StandardError => e
+        logger.error("Encountered an error encriching data: #{e}")
       end
 
       input
@@ -24,6 +28,10 @@ module Spofford
     alias call process
 
     private
+
+    def logger
+      @logger ||= Rails.logger
+    end
 
     def variant_names(name_uri)
       variant_names = variant_names_lookup(name_uri)
