@@ -64,18 +64,19 @@ namespace :util do
 
       Zip::File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") do |zip|
         zip.select { |entry| entry.name == DEFAULT_FILENAME }.each do |e|
-          e.get_input_stream.each_with_index do |line, index|
-            rdf = JSON.parse(line).fetch('@graph', [])
+          Argot::Reader.new(e.get_input_stream).each_with_index do |rec, index|
+            rdf = rec.fetch('@graph', [])
+            names = name_entries(rdf) if rdf
+            names.each do |name|
+              id = name.fetch('@id', '')
+                       .sub('http://id.loc.gov/authorities/names/', 'lcnaf:') if name
+              ids = has_variant_ids(name) if name
+              labels = variant_labels(rdf, ids)
 
-            names = personal_names(rdf) if rdf
-            id = names.first.fetch('@id', '')
-                      .sub('http://id.loc.gov/authorities/names/', 'lcnaf:') if names.first
-            ids = has_variant_ids(names) if names
-            labels = variant_labels(rdf, ids)
-
-            unless (labels.nil? || labels.empty?)
-              REDIS.set(id, labels)
-              puts "#{id}:#{labels}" if index % 2500 == 0
+              unless (labels.nil? || labels.empty?)
+                REDIS.set(id, labels)
+                puts "#{id}:#{labels}" if index % 2500 == 0
+              end
             end
           end
         end
@@ -101,16 +102,16 @@ namespace :util do
 
     private
 
-    def personal_names(rdf)
+    def name_entries(rdf)
       rdf.select { |v| v.fetch('@type', []).include?('madsrdf:Authority') &&
                          (v.fetch('@type', []).include?('madsrdf:PersonalName') ||
                          v.fetch('@type', []).include?('madsrdf:CorporateName'))}
     end
 
-    def has_variant_ids(names)
-      return if names.nil? || names.empty?
+    def has_variant_ids(name)
+      return if name.nil? || name.empty?
 
-      variants = names&.first&.fetch('madsrdf:hasVariant', [])
+      variants = name&.fetch('madsrdf:hasVariant', [])
       [variants]&.flatten&.map { |v| v['@id'] }
     end
 
