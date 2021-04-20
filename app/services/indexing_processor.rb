@@ -49,10 +49,14 @@ class IndexingProcessor
     flatten = Argot::Transformer.new(&flattener)
     suffix = Argot::Transformer.new(&suffixer)
 
+    timestamp = Spofford::Timestamper.new.as_block
+
+    timestamper = Argot::Transformer.new(&timestamp)
+
     solr_filter = Spofford::SolrValidator.new do |rec, err|
       logger.info("Record #{rec['id']} rejected: #{err.to_json}")
     end
-    Argot::Pipeline.new | deleter | contenter | enrichen | flatten | suffix | solr_filter
+    Argot::Pipeline.new | deleter | contenter | enrichen | flatten | suffix |  solr_filter | timestamper
   end
   # rubocop:enable AbcSize, MethodLength
 

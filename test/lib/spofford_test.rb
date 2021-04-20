@@ -70,5 +70,12 @@ class ScriptClassifierTest < ActiveSupport::TestCase
   test 'CJK characters are classified' do
     assert Spofford::ScriptClassifier.new('東京').classify == 'cjk'
   end
+
+  class TimestamperTest < ActiveSupport::TestCase
+    test 'Timestamper adds field to document' do
+      i = {}
+      assert Spofford::Timestamper.new.process(i).include?(Spofford::Timestamper::FIELD_NAME)
+    end
+  end
 end
 
