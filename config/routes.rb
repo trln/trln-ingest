@@ -31,6 +31,9 @@ Rails.application.routes.draw do
   get   '/record/search', to: 'documents#search'
   get   '/record/:id' => 'documents#show', :defaults => { format: 'html'}, as: 'show_document'
 
+  get '/nameauthority/', to: 'name_authority#index'
+  get '/nameauthority/:lookup', to: 'name_authority#index'
+
   authenticate :user, ->(u) { u.admin? } do
     mount Sidekiq::Web => '/sidekiq'
   end
