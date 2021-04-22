@@ -11,6 +11,7 @@ module Spofford
   autoload :ScriptClassifier, 'spofford/script_classifier'
   autoload :SolrValidator, 'spofford/solr_validator'
   autoload :ArgotViewer, 'spofford/argot_viewer'
+  autoload :Timestamper, 'spofford/timestamper'
 
   Institution = Struct.new('Owner', :key, :prefix, :name) do
   end
