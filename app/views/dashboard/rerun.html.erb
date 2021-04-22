@@ -1,0 +1,19 @@
+<div class='card'>
+ <div class="card-body">
+   <% if @reindex.valid? && @reindex.commit %>
+    <h5 class='card-title'>
+    <%= @reindex.action.titleize %>ing <%= @count.length %> transactions.
+    </h5>
+    <div class="card-text">
+    <a href="/sidekiq">View progress</a>
+    </div>
+   <% else %>
+    <h5 class='card-title'>
+      Confirm: <%= @reindex.action.titleize %> <%= @count %> transactions
+    </h5>
+    <div class='card-text'>
+      <%= render(partial: 'rerun_form', locals: { confirm: true }) %>
+    </div>
+    <% end %>
+ </div>
+</div>

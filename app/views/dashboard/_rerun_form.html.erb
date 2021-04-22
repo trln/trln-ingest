@@ -1,0 +1,91 @@
+<%= form_for(@reindex, url: '/dashboard/rerun', method: :post) do |f| %>
+    <% if @reindex.errors.any? %>
+    <div id="form_errors">
+     <h2><%= pluralize(@reindex.errors.count, 'problems') %>
+      found</h2>
+       <ul>
+         <% @reindex.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          </li>
+         <% end %>
+       </ul>
+     </div>
+    <% end %>
+     <div class="form-group row">
+     <%= f.label :from, class: 'col-sm-2 col-form-label' %>
+     <%= f.datetime_field(:from, class: 'form-control col-sm-10', required: true, max: Time.now - 30) %>
+     <small id="fromHelpText" class="help-text text-muted">Local Time:</small>
+     </div>
+     <div class="form-group row"> 
+     <%= f.label :to, class: 'col-sm-2 col-form-label-sm' %>
+     <%= f.datetime_field :to, class: 'form-control col-sm-10', required: true,            max: Time.now %>
+     <small id="toHelpText" class="help-text text-muted align-self-end">Local Time:</small>
+     
+     </div>
+     <div class="form-group row">
+     <%= f.label :institution, class: 'col-sm-2 col-form-label-sm' %>
+     <%= f.select(:institution, @reindex.institution_options, class: 'form-control col-sm-10', prompt: '(optional) limit to an institution') %>
+      </div>
+      <div class="form-group row">
+       <div class: 'col-sm-2 col-form-label-sm'>
+          Action
+       </div>
+        <div class='col-sm-10'>
+        <%= f.radio_button :action, 'reindex' %>
+        <%= f.label :action_reindex, "Reindex" %>
+        <%= f.radio_button :action, 'reingest' %>
+        <%= f.label( :action_reingest, 'Reingest') %>
+      </div>
+
+      </div>
+      <%= f.hidden_field :commit, value: @show_confirm ? false : true %>
+      <div class="form-group row">
+        <button id="reindexSubmit" class="btn btn-secondary">
+          <%= @show_confirm ? 'Check' : 'Commit' %>
+      </button>
+<% end %>
+
+<script>
+   var getNextSibling = (el, sel) => {
+      var sibl = el.nextElementSibling;
+      if ( !sel ) {
+          return sibl;
+      }
+      while(sibl) {
+        if ( sibl.matches(sel) ) {
+          return sibl;
+        }
+        sibl = sibl.nextElementSibling;
+      }
+   };
+
+   var form = document.getElementById('new_reindex_request_form');
+   if ( form ) {
+    var locals = form.querySelectorAll('input[type="datetime-local"]');
+    locals.forEach( (x) => {
+        var expl = getNextSibling(x, '.help-text');
+        if ( expl ) {
+          var explainer = e => {
+            try {
+              var dt = new Date(x.value +"Z");
+              expl.innerHTML = "Local time: " + dt.toLocaleString();
+            } catch( e ) {
+              console.log(e);
+            }
+          };
+          explainer();
+          x.addEventListener('change', explainer);
+        }
+    });
+
+    var cmtElement = document.getElementById("reindex_request_form_commit");
+    var unsetCommit = e => {
+        cmtElement.value = "false";
+        document.getElementById("reindexSubmit").innerHTML = "Check";
+    };
+    form.querySelectorAll("input, select").forEach( (input) => {
+      input.addEventListener("change", unsetCommit);
+    });
+        
+  }
+</script>
