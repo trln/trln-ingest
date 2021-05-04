@@ -52,7 +52,9 @@ gem 'git', '~> 1.3.0'
 
 # See https://github.com/rails/execjs#readme for more supported runtimes
 # gem 'therubyracer', '~> 0.12.3', platforms: :ruby
-gem 'mini_racer', '<= 0.3.9', platforms: :ruby
+
+# 0.4.0 seems to have problems building on Centos 7
+gem 'mini_racer', '<= 0.3.9',  platforms: :ruby
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
