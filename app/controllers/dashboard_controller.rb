@@ -1,7 +1,9 @@
 class DashboardController < ApplicationController
   include DashboardHelper
   def index
-    logger.info('dashboard index')
+    @reindex = ReindexRequestForm.new
+    @show_confirm = true
+    logger.info("Reindex: from: #{@reindex.from}, to: #{@reindex.to}") 
     solr = SolrService.new
     @ping_results = solr.ping
     @clusterstatus = solr.clusterstatus 
@@ -28,4 +30,24 @@ class DashboardController < ApplicationController
     client = SolrService.new.client
     client.get('/admin/collections?action=clusterstatus')
   end
+
+  def rerun
+    rp = reindex_params
+    @reindex = ReindexRequestForm.new(rp)
+    @show_confirm = @reindex.invalid?
+    @count = 0
+
+    if @reindex.valid?
+      if @reindex.action == 'reindex'
+        @count = reindex_range
+      else
+        @count = reingest_range
+      end
+    end
+  end
+
+  def reindex_params
+    params.require(:reindex_request_form).permit(:from, :to, :commit, :institution, :action)
+  end
+
 end
