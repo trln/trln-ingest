@@ -9,6 +9,8 @@ Rails.application.routes.draw do
 
   get '/dashboard' => 'dashboard#index'
 
+  post '/dashboard/rerun', to: 'dashboard#rerun'
+
   resources :transactions
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root to: 'transactions#index'

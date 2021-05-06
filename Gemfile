@@ -11,7 +11,9 @@ git_source(:github) do |r|
   "https://github.com/#{r}.git"
 end
 
-gem 'rails', '~> 5.1.0'
+#gem 'rails', '~> 5.1.0'
+
+gem 'rails', '~> 5.2'
 
 gem 'devise', '~> 4.7'
 
