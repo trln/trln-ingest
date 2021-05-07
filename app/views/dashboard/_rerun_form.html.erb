@@ -1,3 +1,4 @@
+<h1>Rerun transactions</h1><br>
 <%= form_for(@reindex, url: '/dashboard/rerun', method: :post) do |f| %>
     <% if @reindex.errors.any? %>
     <div id="form_errors">
@@ -14,12 +15,12 @@
      <div class="form-group row">
      <%= f.label :from, class: 'col-sm-2 col-form-label' %>
      <%= f.datetime_field(:from, class: 'form-control col-sm-10', required: true, max: Time.now - 30) %>
-     <small id="fromHelpText" class="help-text text-muted">Local Time:</small>
+     <small id="fromHelpText" class="help-text text-muted col-sm-10">Local Time:</small>
      </div>
      <div class="form-group row"> 
      <%= f.label :to, class: 'col-sm-2 col-form-label-sm' %>
      <%= f.datetime_field :to, class: 'form-control col-sm-10', required: true,            max: Time.now %>
-     <small id="toHelpText" class="help-text text-muted align-self-end">Local Time:</small>
+     <small id="toHelpText" class="help-text text-muted col-sm-10">Local Time:</small>
      
      </div>
      <div class="form-group row">
