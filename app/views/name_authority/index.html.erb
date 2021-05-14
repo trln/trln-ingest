@@ -1,38 +1,39 @@
 <% content_for :title do %>
  TRLN Discovery: Name Authority
-<% end %> 
-<h1><%= yield(:title) %></h1>
- <% if params[:lookup] %>
-  <div>
-  For: <%= params[:lookup] %> (<%= @lookup_value %>)
-  </div>
-  <% if @lookups.empty? %>
-   <em>Not found</em>
-  <% else %>
-   <em>Found <%= pluralize(@lookups.length, 'name') %></em>
+<% end %>
+<h1>Name Authority</h1>
+<h4>LCNAF forms</h4>
+<p>The following forms are all equivalent:
   <ul>
- <% @lookups.each do |value| %>
-    <li><%= value %></li>
-  <% end %>
+    <li>http://id.loc.gov/authorities/names/no2018099999 (URI used in the <kbd>$0</kbd>)</li>
+    <li>https://id.loc.gov/authorities/names/no2018099999.html (web page URL you get redirected to if you enter the above in a browser)</li>
+    <li>no2018099999 (the last component of the URI)</li>
+    <li>lcnaf:no2018099999 (shorthand used by this system)</li>
   </ul>
-  <% end %>
- <% end %>
-  <form action="/nameauthority" method="get">
+</p>
+
+ <h4>Look up</h4>
+<form action="/nameauthority" method="get">
   <label>
-    Identifier 
-   <input type='text' placeholder="enter a LCNAF URI"
-     id="lookup" name='lookup'>
+    Identifier: <input type='text' placeholder="enter a LCNAF URI"
+    id="lookup" name='lookup'>
   </label>
-   <br />
-   <input type="submit" value="Look up">
-  </form>
+  <input type="submit" value="Look up">
+</form>
+<br>
 
-   <p>The following forms are all equivalent:
-
-     <ul>
-       <li>http://id.loc.gov/authorities/names/no2018099999 (URI used in the <kbd>$0</kbd>)</li>
-       <li>https://id.loc.gov/authorities/names/no2018099999.html (web page URL you get redirected to if you enter the above in a browser)</li>
-       <li>no2018099999 (the last component of the URI)</li>
-       <li>lcnaf:no2018099999 (shorthand used by this system)</li>
-     </ul>
-  </p>
+<% if params[:lookup] %>
+  <div>
+    Name Authority ID: <%= @lookup_value %>
+    <% if @lookups.empty? %>
+      <em style="color:#FF0000">Not found</em>
+    <% else %>
+      <em>Found <%= pluralize(@lookups.length, 'name') %></em>
+      <ul>
+        <% @lookups.each do |value| %>
+          <li><%= value %></li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>  
+<% end %>
