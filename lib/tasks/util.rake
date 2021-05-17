@@ -45,8 +45,8 @@ namespace :util do
     task rebuild: :environment do
       Rake::Task['util:lcnaf:download'].invoke
       Rake::Task['util:lcnaf:add_to_redis'].invoke
-      Rake::Task['util:lcnaf:cleanup_files'].invoke
       Rake::Task['util:lcnaf:notify'].invoke
+      Rake::Task['util:lcnaf:cleanup_files'].invoke
     end
 
     desc 'Download LC Name Authority File (lcnaf.madsrdf.ndjson.zip)'
@@ -93,23 +93,23 @@ namespace :util do
       File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Completed adding LCNAF variant names to Redis") }
     end
 
-    desc 'Cleanup LC Name Authority files (deletes lcnaf.madsrdf.ndjson.zip)'
+    desc 'Notify TRLN Admin via email and clean up.'
+    task notify: :environment do
+      admin = User.find(24)
+      AuthorityMailer.new.notify_lcnaf(admin, LCNAF_LOG_FILE)
+    end
+
+    desc 'Cleanup LC Name Authority files (deletes lcnaf.madsrdf.ndjson.zip and LCNAF_LOG_FILE)'
     task cleanup_files: :environment do
       puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
       if File.exists? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
         File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip")
       end
       puts "Deleted LCNAF file."
-      File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Deleted LCNAF file.") }
-    end
-
-    desc 'Notify TRLN Admin via email and clean up.'
-    task notify: :environment do
-      admin = User.find(24)
-      AuthorityMailer.new.notify_lcnaf(admin, LCNAF_LOG_FILE)
       if File.exists?(LCNAF_LOG_FILE)
         File.delete(LCNAF_LOG_FILE)
       end
+      puts "Deleted #{LCNAF_LOG_FILE}."
     end
 
     desc 'Flush LC Name Authority entries from Redis.'
