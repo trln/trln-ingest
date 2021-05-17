@@ -38,11 +38,17 @@ namespace :util do
     DEFAULT_DESTINATION = File.join(ENV.fetch('LCNAF_BASE', File.join(ENV['HOME'], 'trln-lcnaf')))
     REDIS = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
+    LCNAF_LOG_DIR = File.join(ENV.fetch('APP_STASH_DIRECTORY', '/opt/trln'), 'lcnaf_log')
+    FileUtils.mkdir(LCNAF_LOG_DIR) unless File.directory?(LCNAF_LOG_DIR)
+    LCNAF_LOG_FILE = File.join(LCNAF_LOG_DIR, "/lcnaf-#{Time.current.to_date.strftime('%F')}.txt")
+
+
     desc 'Rebuild name authority Redis store'
     task rebuild: :environment do
       Rake::Task['util:lcnaf:download'].invoke
       Rake::Task['util:lcnaf:add_to_redis'].invoke
       Rake::Task['util:lcnaf:cleanup_files'].invoke
+      Rake::Task['util:lcnaf:notify'].invoke
     end
 
     desc 'Download LC Name Authority File (lcnaf.madsrdf.ndjson.zip)'
@@ -53,6 +59,8 @@ namespace :util do
         puts "Downloading #{DEFAULT_SOURCE} to #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip"
         IO.copy_stream(open(DEFAULT_SOURCE), file)
         puts "Download complete"
+
+        File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Download complete") }
       end
     end
 
@@ -61,7 +69,8 @@ namespace :util do
     task add_to_redis: :environment do
       puts "Adding LCNAF variant names to Redis."
       puts "Progress shown by printing one entry per 2,500."
-
+      File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Adding LCNAF variant names to Redis.") }
+      File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Progress shown by printing one entry per 500,500.") }
       Zip::File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") do |zip|
         zip.select { |entry| entry.name == DEFAULT_FILENAME }.each do |e|
           Argot::Reader.new(e.get_input_stream).each_with_index do |rec, index|
@@ -76,12 +85,14 @@ namespace :util do
               unless (labels.nil? || labels.empty?)
                 REDIS.set(id, labels)
                 puts "#{id}:#{labels}" if index % 2500 == 0
+                File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("#{id}:#{labels}") if index % 500500 == 0 }
               end
             end
           end
         end
       end
       puts "Completed adding LCNAF variant names to Redis"
+      File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Completed adding LCNAF variant names to Redis") }
     end
 
     desc 'Cleanup LC Name Authority files (deletes lcnaf.madsrdf.ndjson.zip)'
@@ -91,6 +102,13 @@ namespace :util do
         File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip")
       end
       puts "Deleted LCNAF file."
+      File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Deleted LCNAF file.") }
+    end
+
+    desc 'Notify TRLN Admin via email.'
+    task notify: :environment do
+      admin = User.find(24)
+      AuthorityMailer.new.notify_lcnaf(admin, LCNAF_LOG_FILE)
     end
 
     desc 'Flush LC Name Authority entries from Redis.'
