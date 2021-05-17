@@ -38,9 +38,7 @@ namespace :util do
     DEFAULT_DESTINATION = File.join(ENV.fetch('LCNAF_BASE', File.join(ENV['HOME'], 'trln-lcnaf')))
     REDIS = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
-    LCNAF_LOG_DIR = File.join(ENV.fetch('APP_STASH_DIRECTORY', '/opt/trln'), 'lcnaf_log')
-    FileUtils.mkdir(LCNAF_LOG_DIR) unless File.directory?(LCNAF_LOG_DIR)
-    LCNAF_LOG_FILE = File.join(LCNAF_LOG_DIR, "/lcnaf-#{Time.current.to_date.strftime('%F')}.txt")
+    LCNAF_LOG_FILE = File.join(DEFAULT_DESTINATION, "/lcnaf-#{Time.current.to_date.strftime('%F')}.txt")
 
 
     desc 'Rebuild name authority Redis store'
