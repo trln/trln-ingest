@@ -1,10 +1,9 @@
 class AuthorityMailer < ApplicationMailer
-  default from: 'admin@trln.org'
+  default from: ENV['ADMIN_EMAIL']
 
-  def notify_lcnaf(user, attachment)
-  	attachments["lcnaf-#{Time.current.to_date.strftime('%F')}.txt"] = attachemnt
-    mail(to: user.email, 
-    	subject: 'Authority Records update status', 
-    	body: 'Open an attachemnt to see the status of the util:lcnaf:rebuild task.').deliver
+  def notify_lcnaf
+    mail(to: ENV['ADMIN_EMAIL'],
+      subject: 'Authority Records rebuild task status', 
+      body: 'Completed adding LCNAF variant names to Redis.').deliver
   end
 end
