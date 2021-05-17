@@ -103,10 +103,13 @@ namespace :util do
       File.open(LCNAF_LOG_FILE, 'w') { |file| file.puts("Deleted LCNAF file.") }
     end
 
-    desc 'Notify TRLN Admin via email.'
+    desc 'Notify TRLN Admin via email and clean up.'
     task notify: :environment do
       admin = User.find(24)
       AuthorityMailer.new.notify_lcnaf(admin, LCNAF_LOG_FILE)
+      if File.exists? LCNAF_LOG_FILE
+        File.delete LCNAF_LOG_FILE
+      end
     end
 
     desc 'Flush LC Name Authority entries from Redis.'
