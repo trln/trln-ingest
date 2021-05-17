@@ -107,8 +107,8 @@ namespace :util do
     task notify: :environment do
       admin = User.find(24)
       AuthorityMailer.new.notify_lcnaf(admin, LCNAF_LOG_FILE)
-      if File.exists? LCNAF_LOG_FILE
-        File.delete LCNAF_LOG_FILE
+      if File.exists?(LCNAF_LOG_FILE)
+        File.delete(LCNAF_LOG_FILE)
       end
     end
 
