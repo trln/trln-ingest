@@ -43,6 +43,7 @@ namespace :util do
       Rake::Task['util:lcnaf:download'].invoke
       Rake::Task['util:lcnaf:add_to_redis'].invoke
       Rake::Task['util:lcnaf:cleanup_files'].invoke
+      Rake::Task['util:lcnaf:notify'].invoke
     end
 
     desc 'Download LC Name Authority File (lcnaf.madsrdf.ndjson.zip)'
@@ -61,7 +62,7 @@ namespace :util do
     task add_to_redis: :environment do
       puts "Adding LCNAF variant names to Redis."
       puts "Progress shown by printing one entry per 2,500."
-
+      
       Zip::File.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip") do |zip|
         zip.select { |entry| entry.name == DEFAULT_FILENAME }.each do |e|
           Argot::Reader.new(e.get_input_stream).each_with_index do |rec, index|
@@ -91,6 +92,11 @@ namespace :util do
         File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.zip")
       end
       puts "Deleted LCNAF file."
+    end
+
+    desc 'Notify TRLN Admin via email.'
+    task notify: :environment do
+      AuthorityMailer.new.notify_lcnaf
     end
 
     desc 'Flush LC Name Authority entries from Redis.'
