@@ -77,7 +77,7 @@ gem 'hashids'
 
 # Gem that provides background processing features
 
-gem 'sidekiq', '~> 5.0'
+gem 'sidekiq', '~> 6.4'
 
 # Postgres 9.5+ native "upsert" support
 # there are other approaches, some of which involve creating CSV files
