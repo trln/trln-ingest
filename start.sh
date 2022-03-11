@@ -14,7 +14,7 @@ while getopts ":c"  opt; do
 	case ${opt} in
 		c )
 			echo "deleting old log files"
-			rm -f logs/*
+			rm -f log/*
 			;;
 		\? )
 			echo "Unknown option -$OPTARG"
