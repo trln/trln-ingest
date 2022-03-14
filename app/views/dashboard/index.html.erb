@@ -6,6 +6,7 @@
    <h2>Solr Status</h2>
   <ul class='list-group'>
   <% @ping_results.each do |hostname, results| %>
+   <%= debug(results) %>
 
    <li class="list-group-item <%= solrstatus_to_bootstrap_item(results['status']) %>"><%= hostname %> : <%= results['status'] %>
   <% end %>

@@ -11,9 +11,7 @@ git_source(:github) do |r|
   "https://github.com/#{r}.git"
 end
 
-#gem 'rails', '~> 5.1.0'
-
-gem 'rails', '~> 6.0'
+gem 'rails', "~> 6.1"
 
 gem 'devise', '~> 4.8'
 
@@ -44,7 +42,7 @@ gem 'sassc', '~> 2.0.0'
 gem 'uglifier', '>= 1.3.0'
 
 # TypeScript (requires node)
-gem 'typescript-rails'
+#gem 'typescript-rails'
 
 # git is used to fetch mappings from github
 gem 'git', '~> 1.3.0'
@@ -91,7 +89,7 @@ gem 'active_record_upsert', platform: :mri
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
 
-gem 'argot', '>= 0.3.9', github: 'trln/argot-ruby'
+gem 'argot', github: 'trln/argot-ruby', branch: 'update-thor'
 
 gem 'solrtasks', github: 'trln/solrtasks'
 
