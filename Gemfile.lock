@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/trln/argot-ruby.git
-  revision: 8d9069fc17347cc7437284c68a6d04bfc84873ac
-  branch: update-thor
+  revision: cdab78d2b5a84f46fce8d3f59d77614980678ee9
+  tag: v1.0.7
   specs:
     argot (1.0.7)
       nokogiri (~> 1.10)
@@ -274,7 +274,7 @@ GEM
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.8)
+    unf_ext (0.0.8.1)
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.0)
