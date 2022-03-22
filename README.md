@@ -18,9 +18,30 @@ of what you'll need installed on the target system, other than Ruby, of course.
 
 ## Getting Started
 
+### Containers and compose
+
+The Vagrant setup should do most of what's needed, but a somewhat
+lighter-weight approach is available using `docker compose` (or
+`podman-compose`), as defined in the `docker-compose.yml` and various
+`Dockerfile`s in the project's directory.
+
+Before running containers for all the services via compose, you will need
+to run the `init.sh` script in the same directory as this file; this will
+pull down the solr configuration from the working repository. Read the
+comments in that file for more information.
+
+From that point, `docker compose up` will start all the necessary services,
+including the primary Rails application (in development mode, so editing files
+in the Rails application directories will take effect immediately).
+
+For more information, look at the `Dockerfile` in this directory and in the
+`solr-docker` subdirectory.
+
 ### Vagrant
 
-Use[`vagrant`](https://www.vagrantup.com/) if you just need to get going.
+If you don't want to use containers, you can use
+[`vagrant`](https://www.vagrantup.com/) if you just need to get going.
+
 Vagrant is a tool for managing virtual machines; it doesn't itself contain any
 'virtualization' features, but it knows how to interact with several VM
 providers (e.g Virtualbox, vmWare Fusion, things like that) and is intended to
@@ -237,7 +258,7 @@ stanza:
 ```
 # assuming service name == 'trln-ingest'
 EnvironmentFile=/etc/default/trln-ingest 
-PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_STORAGE_BASE
+PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_FILES_BASE_
 ```
 
 You may also want to create a `config/database.yml` and `config/solr.yml` for

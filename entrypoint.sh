@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -e
+
+rm -f /app/tmp/pids/server.pid
+
+if [ -e /run/secrets/trln-ingest-db-pw ]; then
+    export DB_PASSWORD=$(cat /run/secrets/trln-ingest-db-pw)
+else
+    echo "Secret not available"
+    exit 1
+fi
+
+export OS_ENV=container
+
+echo "TRANSACTION FILES BASE: '${TRANSACTION_FILES_BASE}'"
+export TRANSACTION_FILES_BASE=${TRANSACTION_FILES_BASE:-/transactions}
+
+cd /app
+
+CMD=${1:-server}
+
+case $1 in
+    server)
+        bundle exec rails db:migrate
+        bundle exec rails user:admin
+        bundle exec rails server -b 0.0.0.0
+        ;;
+    sidekiq)
+        exec bundle exec sidekiq
+        ;;
+    migrate)
+        exec bundle exec rails db:migrate
+        ;;
+    test)
+        export RAILS_ENV=test
+        exec bundle exec rails test
+        ;;
+    shell)
+        exec /bin/bash
+        ;;
+    *)
+        exec bundle exec $@
+        ;;
+esac

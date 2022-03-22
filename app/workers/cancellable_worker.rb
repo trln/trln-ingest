@@ -3,7 +3,7 @@ class CancellableWorker
   include Sidekiq::Worker
 
   def cancelled?
-    Sidekiq.redis {|r| r.exists("cancelled-#{jid}") }.positive?
+    Sidekiq.redis { |r| r.exists("cancelled-#{jid}") }.positive?
   end
 
   def cancel!(jid)

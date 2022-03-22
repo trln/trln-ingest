@@ -1,8 +1,10 @@
 # Kicks off an indexing process
 #
 class IndexingWorker < CancellableWorker
+  # rubocop:disable Metrics/MethodLength
   def perform(txn_id, batch_size = 5000)
     return if cancelled?
+
     begin
       Transaction.find(txn_id)
     rescue RecordNotFound
@@ -14,4 +16,5 @@ class IndexingWorker < CancellableWorker
     processor.logger = logger
     processor.run
   end
+  # rubocop:enable Metrics/MethodLength
 end

@@ -1,0 +1,104 @@
+---
+services:
+  database:
+    image: postgres:14-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: "p0tat0 precious polym3r chimes"
+      PODMAN_USERNS: keep-id
+    volumes:
+      # normally this would be :Z on selinux systems however
+      # this appears to interfere with the right selinux context
+      # being set on the container.  :Z means the container should get
+      # its own context and be the only one that can access the mount
+      # :z means other containers in this compose file can access 
+      # the mount
+      - ./dbinit:/docker-entrypoint-initdb.d/:z
+
+    healthcheck:
+      test: pg_isready -U postgres -h 127.0.0.1
+      interval: 5s
+
+  redis:
+    image: redis:5-bullseye
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 10
+
+  base-app: &base-app
+    image: rwgrim/docker-noop
+    volumes:
+      # see above; any :Z seems to break the postgres container
+      - ./:/app/:z
+      - ingest-transactions:/transactions:z
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      solr1:
+        condition: service_healthy
+        
+    secrets:
+      - trln-ingest-db-pw
+    environment:
+      OS_ENV: container
+      DB_HOST: database
+      DB_USER: ainsworth
+      REDIS_URL: redis://redis:6379
+      SOLR_URL: http://solr1:8983/solr/
+      TRANSACTION_FILES_BASE: /transactions
+    
+  app: &app
+    <<: *base-app
+    image: ingestapp 
+    build: .
+    command: server
+    ports:
+      - 3000:3000
+
+  sidekiq:
+    <<: *base-app
+    image: ingestapp
+    command: sidekiq
+
+  solr1:
+    image: solr:7.7.3
+    container_name: solr1
+    build:
+      context: solr-docker
+    ports: 
+      - 8983:8983
+    environment:
+      - ZK_HOST=zoo1:2181
+    depends_on:
+      - zoo1
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:8983/solr/admin/collections?action=list' ]
+    volumes:
+      - ./solr-docker/initscripts:/docker-entrypoint-initdb.d:Z
+
+  zoo1:
+    image: zookeeper:3.6.2
+    container_name: zoo1
+    restart: always
+    hostname: zoo1
+    ports:
+      - 2181:2181
+      - 7001:7000
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo1:2888:388;2181
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+
+secrets:
+  trln-ingest-db-pw:
+    external: true
+
+volumes:
+  ingest-transactions:
