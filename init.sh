@@ -24,8 +24,9 @@ wd=$(pwd)
 # If solr setup fails due to missing configuration, then
 # rm -rf solr-docker/config and re-run this script
 if [ ! -d solr-docker/config/solr/trlnbib ]; then
-    cd solr-docker/config
+    cd solr-docker
     echo "checking out solr configuration"
+    mkdir config && cd config
     git init
     git remote add origin https://github.com/trln/trln-config
     git config core.sparseCheckout true
