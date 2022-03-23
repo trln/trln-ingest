@@ -27,8 +27,9 @@ lighter-weight approach is available using `docker compose` (or
 
 Before running containers for all the services via compose, you will need
 to run the `init.sh` script in the same directory as this file; this will
-pull down the solr configuration from the working repository. Read the
-comments in that file for more information.
+pull down the solr configuration from the working repository and, if needed, create a docker/podman secret for the PostgreSQL database password. 
+
+Read the comments in that file for more information.
 
 From that point, `docker compose up` will start all the necessary services,
 including the primary Rails application (in development mode, so editing files
@@ -36,6 +37,17 @@ in the Rails application directories will take effect immediately).
 
 For more information, look at the `Dockerfile` in this directory and in the
 `solr-docker` subdirectory.
+
+The default exposed ports are:
+
+| Port | Service |
+|------| --------|
+| 3000 | Rails |
+| 2181 | Zookeeper |
+| 8983 | solr |
+| 6379 | Redis |
+| 5432 | Postgres |
+
 
 ### Vagrant
 
