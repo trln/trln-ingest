@@ -98,7 +98,7 @@ services:
 
 secrets:
   trln-ingest-db-pw:
-    external: true
+    file: .db-password
 
 volumes:
   ingest-transactions:

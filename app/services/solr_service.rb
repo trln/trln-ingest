@@ -86,10 +86,10 @@ class SolrService
   #    A configuration matching the name must already exist.
   #    defaults to the same value as `collection`
   def create_collection(collection = 'trlnbib', config_name = nil)
-    return unless Rails.env == 'development'
+    return unless Rails.env.development?
 
-    resp = @client.get(COLL_PATH, params: { action: 'list' })
-    return if resp.fetch('collections', []).include?(collection)
+    query_resp = @client.get(COLL_PATH, params: { action: 'list' })
+    return if query_resp.fetch('collections', []).include?(collection)
 
     config_name ||= collection
 
@@ -100,5 +100,7 @@ class SolrService
       numShards: 1
     })
     return resp
+  rescue StandardError
+    warn "#{query_resp.to_json}"
   end
 end

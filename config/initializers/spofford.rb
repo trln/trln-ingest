@@ -15,4 +15,8 @@ Rails.application.configure do
     FileUtils.mkdir(config.stash_directory)
   end
 
+  if Rails.env.development?
+    SolrService.new.create_collection
+  end
+
 end

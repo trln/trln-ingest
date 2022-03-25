@@ -1,6 +1,9 @@
 namespace :user do
   def vagrant?
-    @vagrant ||= system("grep '^vagrant:' /etc/passwd")
+    return @vagrant if defined?(@vagrant)
+   
+    # see config/boot.rb 
+    @vagrant = TRLN::IngestEnvironment.vagrant? || TRLN::IngestEnvironment.container?
   end
   desc 'List users'
   task list: :environment do

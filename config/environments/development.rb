@@ -62,7 +62,7 @@ Rails.application.configure do
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
-  config.stash_directory = ENV['APP_STASH_DIRECTORY'] || "#{ENV['HOME']}/spofford-data"
+  config.stash_directory = ENV['TRANSACTION_FILES_BASE'] || "#{ENV['HOME']}/spofford-data"
 
   unless File.directory?(config.stash_directory)
     $stderr.write("Transaction storage directory #{config.stash_directory} does not exist!\n")

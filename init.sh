@@ -53,11 +53,9 @@ fi
 
 # grep will have a non-zero exit if the value isn't found
 
-${container_runner} secret list | grep trln-ingest-db-pw  > /dev/null
-
-if [ $? != 0 ]; then
-    echo "Didn't find database secret; creating ..."
-    ruby -r securerandom -e 'puts SecureRandom.alphanumeric(48)' | ${container_runner} secret create trln-ingest-db-pw -
+if  [ ! -s .db-password ]; then
+    echo "database password file not found, creating"
+    echo 'a1nsw0rth' > .db-password
 else
-    echo "database secret is already set up"
+    echo "database passwod is already set up"
 fi 
