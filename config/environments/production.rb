@@ -1,5 +1,14 @@
+require 'socket'
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+
+  # should add localhost, allow any *.discovery.trln.org
+  # and also the current IP (although we might want to investigate
+  # the latter
+  config.hosts << '.discovery.trln.org'
+  config.hosts << 'localhost'
+  config.hosts << "#{IPSocket.getaddress(Socket.gethostname)}"
 
   # Code is not reloaded between requests.
   config.cache_classes = true
