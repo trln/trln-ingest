@@ -45,7 +45,7 @@ gem 'uglifier', '>= 1.3.0'
 #gem 'typescript-rails'
 
 # git is used to fetch mappings from github
-gem 'git', '~> 1.3.0'
+gem 'git', '~> 1.11.0'
 
 # See https://github.com/rails/execjs#readme for more supported runtimes
 # gem 'therubyracer', '~> 0.12.3', platforms: :ruby
