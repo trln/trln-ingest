@@ -162,7 +162,7 @@ GEM
     mock_redis (0.30.0)
       ruby2_keywords
     nio4r (2.5.8)
-    nokogiri (1.13.3)
+    nokogiri (1.13.4)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     orm_adapter (0.5.0)
