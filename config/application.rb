@@ -8,6 +8,8 @@ Bundler.require(*Rails.groups)
 
 Mime::Type.register 'application/octet-stream', :binary
 
+
+
 module TrlnIngest
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
@@ -17,6 +19,8 @@ module TrlnIngest
     # we need it
     # config.middleware.insert_before(ActionDispatch::Executor, NoParse, :urls => ['/ingest/UNC', '/ingest', '/ingest/NCSU' ])
 
+
+    config.load_defaults "6.0"
     # Load environment variable from file
     # http://railsapps.github.io/rails-environment-variables.html
     config.before_configuration do

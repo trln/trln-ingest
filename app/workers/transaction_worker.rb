@@ -1,6 +1,8 @@
 ##
 # Worker that processes a transaction via Sidekiq
 class TransactionWorker < CancellableWorker
+  sidekiq_options log_level: :debug
+
   def perform(transaction_id)
     return if cancelled?
     begin
@@ -10,8 +12,9 @@ class TransactionWorker < CancellableWorker
       cancel!(jid)
       return
     end
+    logger.info("Creating a processor for #{transaction_id}")
     processor = TransactionProcessor.new(txn)
-    processor.logger = logger
+    #processor.logger = logger
     begin
       logger.info("Starting ingest for transaction #{transaction_id}")
       processor.run
