@@ -9,6 +9,7 @@
 /.bundle
 /.vagrant
 *.iml
+db/*.sqlite
 
 .vagrant_rails_env
 

@@ -10,15 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+
+
 ActiveRecord::Schema.define(version: 20180904184901) do
+
+  adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+
+  autoinc_type = case adapter_name
+                 when /^postgres/
+                   :serial
+                 when /^sqlite/
+                   :integer
+                 else
+                   :integer
+                 end
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  warn(extensions.to_s)
+
   create_table "documents", id: :string, limit: 32, force: :cascade do |t|
     t.string "local_id", limit: 32, null: false
     t.string "owner", limit: 32, null: false
-    t.jsonb "content"
+    if adapter_name.starts_with?('postgres')
+       t.jsonb "content"
+    elsif adapter_name.starts_with?('sqlite')
+      t.text "content"
+    else
+       t.text "content"
+    end
     t.integer "txn_id"
     t.string "updated_by"
     t.datetime "created_at", null: false
@@ -28,12 +49,12 @@ ActiveRecord::Schema.define(version: 20180904184901) do
     t.index ["txn_id"], name: "index_documents_on_txn_id"
   end
 
-  create_table "transactions", id: :serial, force: :cascade do |t|
+  create_table "transactions", id: autoinc_type, force: :cascade do |t|
     t.string "owner"
     t.string "status"
     t.string "tag"
     t.string "stash_directory"
-    t.string "files", default: [], array: true
+    t.string "files", default: [].to_yaml, array: true
     t.boolean "completed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -51,8 +72,13 @@ ActiveRecord::Schema.define(version: 20180904184901) do
     t.integer "sign_in_count", default: 0, null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
-    t.inet "current_sign_in_ip"
-    t.inet "last_sign_in_ip"
+    if adapter_name.starts_with?('postgres') 
+      t.inet "current_sign_in_ip"
+      t.inet "last_sign_in_ip"
+    else
+      t.string "current_sign_in_ip"
+      t.string "last_sign_in_ip"
+    end
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "admin", default: false, null: false

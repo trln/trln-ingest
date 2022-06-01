@@ -36,10 +36,10 @@ gem 'local_time', '~> 2.0.0'
 # or use passenger
 # gem 'passenger', '~> 5.0.30'
 # Use SCSS for stylesheets
-gem 'sassc', '~> 2.0.0'
+gem 'dartsass'
 
 # Use Uglifier as compressor for JavaScript assets
-gem 'uglifier', '>= 1.3.0'
+gem 'terser'
 
 # TypeScript (requires node)
 #gem 'typescript-rails'

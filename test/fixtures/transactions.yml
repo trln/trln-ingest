@@ -4,12 +4,16 @@ one:
   owner: ncsu
   user_id: 1
   status: New
-  files: '{docs,errors}'
+  files:
+    - docs
+    - errors
 
 two:
   owner: unc
   user_id: 2
   status: Complete
-  files: '{docs,errors}'
+  files: 
+    - docs
+    - errors
 
 

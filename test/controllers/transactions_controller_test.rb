@@ -14,8 +14,10 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
   test "should get index (authenticated)" do
     sign_in(@user)
-    get transactions_url
-    assert_response :success
+    TransactionWorker.stub(:perform_async, true) do
+      get transactions_url
+      assert_response :success
+    end
   end
 
   test "index should get redirected to login page (noauth)" do
@@ -41,7 +43,12 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
   test "should show transaction (auth)" do
     sign_in(@user)
-    get transaction_url(@transaction)
+    
+    Sidekiq::Workers.stub(:new, []) do 
+      Sidekiq::RetrySet.stub(:new, []) do 
+        get transaction_url(@transaction)
+      end
+    end
     assert_response :success
   end
 
@@ -61,7 +68,9 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
 
   test 'should create ingest (auth WITH TOKEN)' do
     assert_difference('Transaction.count', 1) do
+    TransactionWorker.stub(:perform_async, true) do 
       post '/ingest/ncsu', params: {}.to_json, headers: {'Content-Type' => 'application/json', 'X-User-Email' => @user.email, 'X-User-Token' => @user.authentication_token}
+      end
     end
     assert_response :success
   end

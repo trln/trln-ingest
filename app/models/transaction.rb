@@ -8,6 +8,10 @@ class Transaction < ApplicationRecord
 
   belongs_to :user
 
+  if ActiveRecord::Base.connection.adapter_name.downcase.start_with?('sqlite')
+    serialize :files
+  end
+
   # tag is needed to create a unique directory
   # to store the files; it's set during the stash! process
   validates :tag, presence: true

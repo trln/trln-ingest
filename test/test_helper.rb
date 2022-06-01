@@ -4,6 +4,9 @@ require 'rails/test_help'
 require 'tempfile'
 require 'timecop'
 require 'pry-byebug'
+#require 'mock_redis'
+#require 'sidekiq/testing'
+require 'minitest/autorun'
 
 ActiveRecord::Migration.maintain_test_schema!
 
