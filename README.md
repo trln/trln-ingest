@@ -5,8 +5,9 @@ records for the Triangle Research Libraries Network (TRLN).
 
 ![Continuous Integration Status](https://github.com/trln/trln-ingest/workflows/CI/badge.svg)
 
-Setup is currently handled via Vagrant, but here's at least a partial list
-of what you'll need installed on the target system, other than Ruby, of course.
+Setup is currently handled via Vagrant or Docker Compose, but here's at least a
+partial list of what you'll need installed on the target system, other than
+Ruby, of course.
 
  * Postgres 9.5+ (for JSONB and "upsert" support) -- [Postgres yum
    repositories](https://yum.postgresql.org/repopackages.php) is a good place
@@ -18,7 +19,7 @@ of what you'll need installed on the target system, other than Ruby, of course.
 
 ## Getting Started
 
-### Containers and compose
+### Containers and Docker/Podman Compose
 
 The Vagrant setup should do most of what's needed, but a somewhat
 lighter-weight approach is available using `docker compose` (or
@@ -27,16 +28,20 @@ lighter-weight approach is available using `docker compose` (or
 
 Before running containers for all the services via compose, you will need
 to run the `init.sh` script in the same directory as this file; this will
-pull down the solr configuration from the working repository and, if needed, create a docker/podman secret for the PostgreSQL database password. 
+pull down the solr configuration from the working repository and, if needed, create a docker/podman secret for the PostgreSQL database password.
 
-Read the comments in that file for more information.
+Read the comments in `init.sh` for more information.
 
 From that point, `docker compose up` will start all the necessary services,
 including the primary Rails application (in development mode, so editing files
 in the Rails application directories will take effect immediately).
 
-For more information, look at the `Dockerfile` in this directory and in the
-`solr-docker` subdirectory.
+For more information, look at the `docker-compose.yml`, the `Dockerfile` in
+this directory, and the one in in the `solr-docker` subdirectory. A little bit
+of `depends_on` and `wait-for` fine-tuning is necessary to ensure that the Solr
+plugin files (in `solr-docker/plugins`) and the Solr configuration are
+correctly installed before the services services start. When the smoke clears
+you should have a complete set of services.
 
 The default exposed ports are:
 

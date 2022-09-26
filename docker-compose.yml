@@ -2,6 +2,7 @@
 services:
   database:
     image: postgres:14-alpine
+    container_name: database
     ports:
       - 5432:5432
     environment:
@@ -12,7 +13,7 @@ services:
       # this appears to interfere with the right selinux context
       # being set on the container.  :Z means the container should get
       # its own context and be the only one that can access the mount
-      # :z means other containers in this compose file can access 
+      # :z means other containers in this compose file can access
       # the mount
       - ./dbinit:/docker-entrypoint-initdb.d/:z
 
@@ -22,6 +23,7 @@ services:
 
   redis:
     image: redis:5-bullseye
+    container_name: redis
     ports:
       - 6379:6379
     healthcheck:
@@ -30,6 +32,8 @@ services:
       timeout: 3s
       retries: 10
 
+  # this is designed merely to be 'inherited' from so we arent'
+  # repeating ourselves with the rails and sidekiq containers
   base-app: &base-app
     image: rwgrim/docker-noop
     volumes:
@@ -43,7 +47,7 @@ services:
         condition: service_healthy
       solr1:
         condition: service_healthy
-        
+
     secrets:
       - trln-ingest-db-pw
     environment:
@@ -53,14 +57,21 @@ services:
       REDIS_URL: redis://redis:6379
       SOLR_URL: http://solr1:8983/solr/
       TRANSACTION_FILES_BASE: /transactions
-    
+
   app: &app
     <<: *base-app
-    image: ingestapp 
+    container_name: spofford
+    image: ingestapp
     build: .
     command: server
     ports:
       - 3000:3000
+
+    depends_on:
+      - solr1
+      - redis
+      - database
+
 
   sidekiq:
     <<: *base-app
@@ -72,7 +83,7 @@ services:
     container_name: solr1
     build:
       context: solr-docker
-    ports: 
+    ports:
       - 8983:8983
     environment:
       - ZK_HOST=zoo1:2181
@@ -81,6 +92,7 @@ services:
     healthcheck:
       test: ['CMD-SHELL', 'curl -sf http://localhost:8983/solr/admin/collections?action=list' ]
     volumes:
+      - ./solr-docker/plugins:/trln-modules
       - ./solr-docker/initscripts:/docker-entrypoint-initdb.d:Z
 
   zoo1:
@@ -95,6 +107,23 @@ services:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=zoo1:2888:388;2181
       ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+
+  solr_config_loader:
+    image: solr:9
+    container_name: config_loader
+    depends_on: solr1
+    environment:
+      - SOLR_HOST=solr1
+    command:
+      - bash
+      - "-e"
+      - "-x"
+      - "-c"
+      - "wait-for-solr.sh --max-attempts 10 --wait-seconds 5 --solr-url http://$$SOLR_HOST:8983/; solr create_collection -c trlnbib -d /trlnbib-config -p 8983"
+
+    volumes:
+      - ./solr-docker/config:/trlnbib-config
+
 
 secrets:
   trln-ingest-db-pw:

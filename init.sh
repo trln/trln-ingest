@@ -13,7 +13,7 @@ set -eu
 # After a copy has been checked out, a different branch can be used
 # via `cd solr-docker/config && git pull origin [newbranch] && git checkout [newbranch]` and re-starting all the containers.
 
-CONFIG_BRANCH=${1:-master}
+CONFIG_BRANCH=${1:-main}
 
 echoerr() {
     echo "$@" 1>&2;
@@ -23,16 +23,13 @@ wd=$(pwd)
 
 # If solr setup fails due to missing configuration, then
 # rm -rf solr-docker/config and re-run this script
-if [ ! -d solr-docker/config/solr/trlnbib ]; then
+if [ ! -d solr-docker/config/ ]; then
     cd solr-docker
     echo "checking out solr configuration"
-    mkdir config && cd config
-    git init
-    git remote add origin https://github.com/trln/trln-config
-    git config core.sparseCheckout true
-    echo "solr/trlnbib/" >> .git/info/sparse-checkout
-    git pull --depth=1 origin "$CONFIG_BRANCH"
-    git checkout ${CONFIG_BRANCH}
+    git clone https://github.com/trln/trlnbib-solr-config config/
+    if [ "main" != "${CONFIG_BRANCH}" ]; then
+        git checkout ${CONFIG_BRANCH}
+    fi
     cd $wd
 else
     echo "solr configuration is already available"

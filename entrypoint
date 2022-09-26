@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Custom entrypoint to enable local development
+
 set -e
 
 rm -f /app/tmp/pids/server.pid

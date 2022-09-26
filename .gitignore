@@ -7,15 +7,24 @@
 
 # Ignore bundler config.
 /.bundle
-/.vagrant
-*.iml
-
 vendor/bundle
 
+# created by JetBrains' editors/IDEs
+*.iml
+.idea/
+
+*.sublime-*
+
+# Directories created by vagrant directly
+
+/.vagrant
+
+# directories created by vagrant provisioner
+
+solr-dir/
+tlrn-config/
 .vagrant_rails_env
 .db-password
-
-.ruby-version
 
 # Ignore the default SQLite database.
 /db/*.sqlite3
@@ -26,31 +35,23 @@ vendor/bundle
 /tmp/*
 !/log/.keep
 !/tmp/.keep
-
-# Ignore Byebug command history file.
-.byebug_history
-
-# Local customizations
-#
-ansible/roles/*
-
-# might be 
-trln-config/
-# Where Solr is installed
-solr-dir/
-# Where public Solr configuration is downloaded 
-argon-solr-config
-
-
-
-config/local_env.yml
-comfig/mappings 
-config/mappings/
-.password
-postgres-setup.sql
-*.sublime-*
-.idea/
 tmp/
 passenger.*.log
 passenger*.lock
 passenger*.pid
+
+# Ignore Byebug command history file.
+.byebug_history
+
+# Files downloaded by Ansible provisioners
+ansible/roles/*
+
+# Other fiels created by/used by app
+config/local_env.yml
+config/mappings/
+.password
+postgres-setup.sql
+
+# files created/used by containers (docker-compose.yml, init.sh)
+.env
+solr-docker/config/
