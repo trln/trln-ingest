@@ -91,8 +91,6 @@ gem 'active_record_upsert', platform: :mri
 
 gem 'argot', github: 'trln/argot-ruby', tag: 'v1.0.7'
 
-gem 'solrtasks', github: 'trln/solrtasks'
-
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
 # Use ActiveModel has_secure_password

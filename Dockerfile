@@ -4,21 +4,23 @@ FROM ruby:${RUBY_VERSION} AS base
 # note here that if you don't use an alpine flavor this
 # package update will not work!
 
-RUN apk update && apk upgrade && apk add --no-cache build-base sqlite-dev libpq-dev libxml2-dev libxslt-dev yajl git 
+RUN apk update && apk upgrade && apk add --no-cache build-base sqlite-dev libpq-dev libxml2-dev libxslt-dev yajl git nodejs bash sqlite
+
 
 COPY ./ /app/
 
 WORKDIR /app
 
+FROM base AS builder
+
 RUN bundle config set path /gems && bundle install -j $(nproc)
 
-FROM ruby:2.7-alpine
-
-RUN apk add nodejs git bash libpq yajl sqlite sqlite-dev
+FROM base
 
 WORKDIR /app
 
 COPY --from=builder /gems /gems
+
 RUN bundle config set path /gems
 
 COPY entrypoint /usr/local/bin/entrypoint

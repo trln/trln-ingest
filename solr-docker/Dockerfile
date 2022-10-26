@@ -5,6 +5,6 @@ FROM solr:9.0.0
 
 # Add external jars
 #RUN sudo mkdir /opt/solr-9.0.0/modules/trln
-COPY plugins/*.jar /trln-modules/
+COPY plugins/*.jar /opt/solr/modules/trln/lib/
 
-COPY config/solr/trlnbib /trlnbib-config
+COPY config/ /trlnbib-config
