@@ -79,7 +79,7 @@ services:
     command: sidekiq
 
   solr1:
-    image: solr:9
+    image: trln-ingest-solr:latest
     container_name: solr1
     build:
       context: solr-docker
@@ -94,6 +94,7 @@ services:
       test: ['CMD-SHELL', 'curl -sf http://localhost:8983/solr/admin/collections?action=list' ]
     volumes:
       - ./solr-docker/plugins:/trln-modules
+      - ./solr-docker/config:/trlnbib-config:z
       - ./solr-docker/initscripts:/docker-entrypoint-initdb.d:Z
 
   zoo1:

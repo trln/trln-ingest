@@ -28,8 +28,7 @@ if [ ! -d solr-docker/config/ ]; then
     echo "checking out solr configuration"
     git clone https://github.com/trln/trlnbib-solr-config config/
     if [ "main" != "${CONFIG_BRANCH}" ]; then
-        cd config
-        git checkout ${CONFIG_BRANCH}
+        cd config && git checkout ${CONFIG_BRANCH}
     fi
     cd $wd
 else
