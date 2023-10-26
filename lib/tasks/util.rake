@@ -2,7 +2,6 @@ require 'json'
 require 'open-uri'
 require 'redis'
 require 'sidekiq'
-require 'open-uri'
 require 'zlib'
 
 namespace :util do
@@ -33,8 +32,8 @@ namespace :util do
   end
 
   namespace :lcnaf do
-    DEFAULT_FILENAME = 'names.madsrdf.jsonld'.freeze
-    DEFAULT_SOURCE = "https://id.loc.gov/download/authorities/#{DEFAULT_FILENAME}.gz".freeze
+    DEFAULT_FILENAME = 'names.madsrdf.jsonld.gz'.freeze
+    DEFAULT_SOURCE = "https://id.loc.gov/download/authorities/#{DEFAULT_FILENAME}".freeze
     DEFAULT_DESTINATION = File.join(ENV.fetch('LCNAF_BASE', File.join(ENV['HOME'], 'trln-lcnaf')))
     REDIS = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
@@ -49,11 +48,11 @@ namespace :util do
     desc 'Download LC Name Authority File (names.madsrdf.jsonld.gz)'
     task download: :environment do
       FileUtils.mkdir(DEFAULT_DESTINATION) unless File.directory?(DEFAULT_DESTINATION)
-      download_file = File.join(DEFAULT_DESTINATION, "#{DEFAULT_FILENAME}.gz")
+      download_file = File.join(DEFAULT_DESTINATION, "#{DEFAULT_FILENAME}")
       if file_too_old?(filename: download_file)
         system('curl', '-o', download_file, DEFAULT_SOURCE)
         URI.open("#{DEFAULT_SOURCE}") do |file|
-          File.open("#{DEFAULT_FILENAME}.gz", 'wb') do |output_file|
+          File.open("#{DEFAULT_FILENAME}", 'wb') do |output_file|
             output_file.write(file.read)
           end
         end
@@ -66,7 +65,7 @@ namespace :util do
     task add_to_redis: :environment do
       puts "Adding LCNAF variant names to Redis."
       puts "Progress shown by printing one entry per 2,500."
-      Zlib::GzipReader.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.gz") do |gz_file|
+      Zlib::GzipReader.open("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}") do |gz_file|
         gz_file.each_line.with_index do |line, index|
         rec = JSON.parse(line)
           rdf = rec.fetch('@graph', [])
@@ -91,9 +90,9 @@ namespace :util do
 
     desc 'Cleanup LC Name Authority files (deletes names.madsrdf.jsonld.gz)'
     task cleanup_files: :environment do
-      puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.gz"
-      if File.exist? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.gz"
-        File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}.gz")
+      puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
+      if File.exist? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
+        File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}")
       end
       puts "Deleted LCNAF file."
     end
