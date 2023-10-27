@@ -3,7 +3,7 @@
 # see app/services/solr_service.rb
 common:  &common
   url: 
-    - http://localhost:8983/solr/
+    - <%= ENV.fetch('SOLR_URL', 'http://localhost:8983/solr/') %>
   collections:
     - trlnbib
     - icetocs

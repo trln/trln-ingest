@@ -12,14 +12,17 @@ default: &default
 development: &vagrant
   adapter: postgresql
   encoding: unicode
+  # see config/boot.rb
+  <% unless TRLN::IngestEnvironment.vagrant? %>
+  # host/passwd not needed when postgres is on localhost and ident auth
+  # is available, as with vagrant setup
+  host: <%= ENV.fetch('DB_HOST', 'localhost') %>
+  password: <%= ENV['DB_PASSWORD'] %>
+  <% end %>
+  
   database: <%= ENV['DB_NAME'] || 'shrindex' %>
   pool: 5
   username: <%= ENV['DB_USER'] || 'set_env_vars' %>
-  # do not set host when running under vagrant
-  # host: <% ENV.fetch('DB_HOST', 'localhost') %>
-  # postgres under vagrant also uses ident when hostnamne
-  # is not set
-  #password: <%= ENV['DB_HOST'] %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

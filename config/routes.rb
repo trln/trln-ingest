@@ -26,6 +26,11 @@ Rails.application.routes.draw do
   post '/ingest/:owner', to: 'transactions#ingest_json', constraints: { content_type: 'application/json' }
   post '/ingest/:owner', to: 'transactions#ingest_zip', constraints: { content_type: 'application/zip' }
 
+  put '/ingest/:owner', to: 'transactions#ingest_json', contstraints: {content_type: 'application/json' }
+
+  put '/ingest/:owner', to: 'transactions#ingest_zip', contstraints: {content_type: 'application/zip' }
+
+
   get   '/ingest/:owner', to: 'transactions#ingest_form', as: 'ingest_form'
   post  '/ingest/:owner', contraints: { content_type: :multipart_form }, to: 'transactions#upload'
 

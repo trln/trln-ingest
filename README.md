@@ -5,8 +5,9 @@ records for the Triangle Research Libraries Network (TRLN).
 
 ![Continuous Integration Status](https://github.com/trln/trln-ingest/workflows/CI/badge.svg)
 
-Setup is currently handled via Vagrant, but here's at least a partial list
-of what you'll need installed on the target system, other than Ruby, of course.
+Setup is currently handled via Vagrant or Docker Compose, but here's at least a
+partial list of what you'll need installed on the target system, other than
+Ruby, of course.
 
  * Postgres 9.5+ (for JSONB and "upsert" support) -- [Postgres yum
    repositories](https://yum.postgresql.org/repopackages.php) is a good place
@@ -18,9 +19,76 @@ of what you'll need installed on the target system, other than Ruby, of course.
 
 ## Getting Started
 
+### Containers and Docker/Podman Compose
+
+The Vagrant setup should do most of what's needed, but a somewhat
+lighter-weight approach is available using `docker compose` (or
+`podman-compose`), as defined in the `docker-compose.yml` and various
+`Dockerfile`s in the project's directory.
+
+Before running containers for all the services via compose, you will need
+to run the `init.sh` script in the same directory as this file; this will
+pull down the solr configuration from the working repository and, if needed, create a docker/podman secret for the PostgreSQL database password.
+
+Read the comments in `init.sh` for more information, especially if you want
+to use a Solr configuration other than from the `main` branch.
+
+From that point, `docker compose up` will start all the necessary services,
+including the primary Rails application (in development mode, so editing files
+in the Rails application directories will take effect immediately).
+
+For more information, look at the `docker-compose.yml`, the `Dockerfile` in
+this directory, and the one in in the `solr-docker` subdirectory. A little bit
+of `depends_on` and `wait-for` fine-tuning is necessary to ensure that the Solr
+plugin files (in `solr-docker/plugins`) and the Solr configuration are
+correctly installed before the services services start. When the smoke clears
+you should have a complete set of services.
+
+A few tidbits: note that `docker-compose up` will build any images that it
+doesn't already know about, but once an image is found, you'll have to rebuild
+it to get any changes you've made (e.g. `docker-compose build app`).  If you've
+done `docker-compose up` and stop things with `ctrl-c` in the terminal, this
+_does not remove any of the images_ so when you run `up` again, you'll get the
+same images as were used in your previous run.  Frequent `docker-compose down`s
+will help eliminate problems resulting from things sticking around too long.
+
+The default exposed ports are:
+
+| Port | Service |
+|------| --------|
+| 3000 | Rails |
+| 2181 | Zookeeper |
+| 8983 | solr |
+| 6379 | Redis |
+| 5432 | Postgres |
+
+These are all available on `localhost`.
+
+## An Extra Note About Running `trln_argon` (or derivatives thereof) in Another Container
+
+You might want to do some end-to-end testing of index schema changes for `trln_argon`, and in that case it's nice to point one of those at the Solr instance
+exposed by this application.
+
+Unless you tell it otherwise, `docker-compose` and friends will probably put
+all containers it starts into the same network (`bridge` by default -- see https://docs.docker.com/network/ for more details). When running `trln_argon` inside a container, it can't see the services exposed to the _host_ at `localhost` but you can use `host.containers.internal` instead to access the services exposed
+by containers, even if they're started from another process.
+
+In this case, put 
+
+`SOLR_URL: http://host.containers.internal:8983/solr/trlnbib` 
+
+in 
+
+`trln_argon/.internal_test_app/config/local_env.yml` (adjust as necessary for
+the particulars of the application you're working with). Note that with
+`trln_argon` specifically, you will need to edit this file every time the
+application is reinitialized.
+
 ### Vagrant
 
-Use[`vagrant`](https://www.vagrantup.com/) if you just need to get going.
+If you don't want to use containers, you can use
+[`vagrant`](https://www.vagrantup.com/) if you just need to get going.
+
 Vagrant is a tool for managing virtual machines; it doesn't itself contain any
 'virtualization' features, but it knows how to interact with several VM
 providers (e.g Virtualbox, vmWare Fusion, things like that) and is intended to
@@ -237,7 +305,7 @@ stanza:
 ```
 # assuming service name == 'trln-ingest'
 EnvironmentFile=/etc/default/trln-ingest 
-PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_STORAGE_BASE
+PassEnvironment=DB_HOST DB_USER DB_PASSWORD DB_ADAPTER DB_NAME RAILS_ENV TRANSACTION_FILES_BASE_
 ```
 
 You may also want to create a `config/database.yml` and `config/solr.yml` for
