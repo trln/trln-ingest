@@ -20,7 +20,8 @@ module TransactionsHelper
 
   def filename_for_download
     name = File.basename(params[:filename])
-    name += '.json' if request.format.symbol == :json
+    name = name.gsub(/\.{2,}/, '--').gsub(/^\./, '')
+    logger.info("Resolved #{params[:filename]} to #{name}")
     name
   end
 
