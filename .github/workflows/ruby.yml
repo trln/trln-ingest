@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ '2.7.5', '3.0.3']
+        ruby: [ '2.7.5', '3.0.3', '3.2.2']
     
     env:
       POSTGRES_PASSWORD: l0lIhaveAdminNow 
@@ -45,6 +45,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
+          bundler: 2.1.4
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
