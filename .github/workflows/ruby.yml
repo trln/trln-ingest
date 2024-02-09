@@ -45,7 +45,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          bundler: 2.1.4
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
@@ -58,7 +57,6 @@ jobs:
                   
       - name: Install dependencies
         run: |
-          gem install bundler
           bundler install
 
       - name: Create database
