@@ -87,7 +87,7 @@ class TransactionsController < ApplicationController
     @transaction = Transaction.find(params[:id])
     name = helpers.filename_for_download
     path = helpers.path_for_download(name)
-    return render(text: 'File not found', status: 404) unless File.exist?(path)
+    return render(plain: 'File not found', status: 404) unless File.exist?(path)
     type = helpers.mime_type_from_filename(name)
     type ||= request.format
     # our 'json' files are streaming format, which breaks most browser
