@@ -9,8 +9,10 @@ rm -f /app/tmp/pids/server.pid
 if [ -e /run/secrets/trln-ingest-db-pw ]; then
     export DB_PASSWORD=$(cat /run/secrets/trln-ingest-db-pw)
 else
-    echo "Secret not available"
-    exit 1
+    if [ ! -v DB_PASSWORD ]; then
+        echo "Secret not available"
+        exit 1
+    fi
 fi
 
 export OS_ENV=container
