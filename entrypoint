@@ -26,9 +26,9 @@ CMD=${1:-server}
 
 case $1 in
     server)
-        bundle exec rails db:migrate
-        bundle exec rails user:admin
-        bundle exec rails server -b 0.0.0.0
+        exec bundle exec rails db:migrate
+        exec bundle exec rails user:admin
+        exec bundle exec rails server -b 0.0.0.0
         ;;
     sidekiq)
         exec bundle exec sidekiq
