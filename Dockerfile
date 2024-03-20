@@ -18,7 +18,7 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/*
 
 
-WORKDIR /usr/src/app
+WORKDIR app
 COPY Gemfile* ./
 # RUN gem install bundler
 RUN gem install bundler -v 2.4.22
@@ -26,8 +26,8 @@ RUN bundle install
 
 COPY . .
 
-RUN chmod -R a+rw /usr/src/app
-RUN chown -R 1001:1001 /usr/src/app
+RUN chmod -R a+rw /app
+RUN chown -R 1001:1001 /app
 
 COPY entrypoint /usr/local/bin/entrypoint
 
