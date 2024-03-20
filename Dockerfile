@@ -40,5 +40,5 @@ EXPOSE 3001
 USER 1001
 
 # CMD ["start"]
-ENTRYPOINT ["entrypoint"]
-CMD ["bundle", "exec", "rails", "server", "-p", "3000", "-b", "0.0.0.0"]
+#ENTRYPOINT ["entrypoint"]
+#CMD ["bundle", "exec", "rails", "server", "-p", "3000", "-b", "0.0.0.0"]
