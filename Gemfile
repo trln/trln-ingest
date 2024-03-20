@@ -14,6 +14,7 @@ end
 gem 'rails', "~> 6.1"
 
 gem 'devise', '~> 4.8'
+gem 'execjs'
 
 # adds authentication token features to devise;
 # can auth actions with a token instead of interactive
