@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Custom entrypoint to enable local development
 
