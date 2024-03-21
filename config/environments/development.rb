@@ -74,6 +74,7 @@ Rails.application.configure do
     "localhost",
     ".cloud.duke.edu",
     ".library.duke.edu",
-    ".lib.duke.edu"
+    ".lib.duke.edu",
+    "ingest-app-dul-alma-sandbox.apps.dev.okd4.fitz.cloud.duke.edu"
   ]
 end
