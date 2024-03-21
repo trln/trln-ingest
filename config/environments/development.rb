@@ -68,3 +68,5 @@ Rails.application.configure do
     $stderr.write("Transaction storage directory #{config.stash_directory} does not exist!\n")
   end
 end
+
+config.hosts = nil
