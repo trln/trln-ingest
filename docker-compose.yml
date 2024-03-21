@@ -63,6 +63,7 @@ services:
     container_name: spofford
     image: ingestapp
     build: .
+    entrypoint: /usr/local/bin/entrypoint
     command: server
     ports:
       - 3000:3000

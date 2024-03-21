@@ -31,7 +31,7 @@ case $1 in
         bundle exec rails server -b 0.0.0.0
         ;;
     sidekiq)
-        bundle exec sidekiq
+        exec bundle exec sidekiq
         ;;
     migrate)
         exec bundle exec rails db:migrate
