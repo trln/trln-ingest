@@ -69,4 +69,11 @@ Rails.application.configure do
   end
 end
 
-config.hosts = nil
+config.hosts = [
+  IPAddr.new("0.0.0.0/0"),
+  IPAddr.new("::/0"),
+  "localhost",
+  ".cloud.duke.edu",
+  ".library.duke.edu",
+  ".lib.duke.edu"
+]
