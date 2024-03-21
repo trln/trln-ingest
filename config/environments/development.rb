@@ -67,13 +67,13 @@ Rails.application.configure do
   unless File.directory?(config.stash_directory)
     $stderr.write("Transaction storage directory #{config.stash_directory} does not exist!\n")
   end
-end
 
-config.hosts = [
-  IPAddr.new("0.0.0.0/0"),
-  IPAddr.new("::/0"),
-  "localhost",
-  ".cloud.duke.edu",
-  ".library.duke.edu",
-  ".lib.duke.edu"
-]
+  config.hosts = [
+    IPAddr.new("0.0.0.0/0"),
+    IPAddr.new("::/0"),
+    "localhost",
+    ".cloud.duke.edu",
+    ".library.duke.edu",
+    ".lib.duke.edu"
+  ]
+end
