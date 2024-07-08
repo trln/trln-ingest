@@ -42,7 +42,7 @@ Rails.application.configure do
 
   config.after_initialize do
     ActiveRecord::Base.logger = Rails.logger.clone
-    ActiveRecord::Base.logger.level = Logger::INFO
+    ActiveRecord::Base.logger.level = Logger::DEBUG
   end
 
   # Debug mode disables concatenation and preprocessing of assets.
