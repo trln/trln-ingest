@@ -44,6 +44,7 @@ Rails.application.configure do
     ActiveRecord::Base.logger = Rails.logger.clone
     ActiveRecord::Base.logger.level = Logger::DEBUG
   end
+  config.log_level = :debug
 
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
