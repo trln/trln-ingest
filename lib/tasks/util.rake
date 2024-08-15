@@ -50,7 +50,7 @@ namespace :util do
       FileUtils.mkdir(DEFAULT_DESTINATION) unless File.directory?(DEFAULT_DESTINATION)
       download_file = File.join(DEFAULT_DESTINATION, "#{DEFAULT_FILENAME}")
       if file_too_old?(filename: download_file)
-        system('curl', '-o', download_file, DEFAULT_SOURCE)
+        system('curl', '-L', '-o', download_file, DEFAULT_SOURCE)
         URI.open("#{DEFAULT_SOURCE}") do |file|
           File.open("#{DEFAULT_FILENAME}", 'wb') do |output_file|
             output_file.write(file.read)
@@ -93,8 +93,8 @@ namespace :util do
       if File.exist? "#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
         puts "Deleting #{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}"
         File.delete("#{DEFAULT_DESTINATION}/#{DEFAULT_FILENAME}")
+        puts "Deleted LCNAF file."
       end
-      puts "Deleted LCNAF file."
     end
 
     desc 'Notify TRLN Admin via email.'
