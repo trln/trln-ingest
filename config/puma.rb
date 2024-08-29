@@ -39,9 +39,9 @@ preload_app!
 # or connections that may have been created at application boot, Ruby
 # cannot share connections between processes.
 #
-on_worker_boot do
-  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-end
+# on_worker_boot do
+#   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+# end
 
 config = ActiveRecord::Base.configurations[Rails.env] || 
          Rails.application.config.database_configuration[Rails.env]
