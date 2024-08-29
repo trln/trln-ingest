@@ -15,6 +15,10 @@ RUN apt-get update \
      vim \
      shared-mime-info \
      rsync \
+     build-essential \
+     libyajl2 \
+     libyajl-dev \
+     sqlite3 \
 	&& rm -rf /var/lib/apt/lists/*
 
 
