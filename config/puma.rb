@@ -39,9 +39,15 @@ preload_app!
 # or connections that may have been created at application boot, Ruby
 # cannot share connections between processes.
 #
-# on_worker_boot do
-#   ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-# end
+on_worker_boot do
+  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+end
+
+config = ActiveRecord::Base.configurations[Rails.env] || 
+         Rails.application.config.database_configuration[Rails.env]
+
+config['pool']              = ENV['DB_POOL'] || 5
+config['reaping_frequency'] = ENV['DB_REAP_FREQ'] || 10
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
