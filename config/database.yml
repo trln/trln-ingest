@@ -21,7 +21,8 @@ development: &vagrant
   <% end %>
   
   database: <%= ENV['DB_NAME'] || 'shrindex' %>
-  pool: 5
+  pool: <%= ENV.fetch('DB_POOL', 5) %>
+  reaping_frequency: <%= ENV.fetch('DB_REAP_FREQ', 10) %>
   username: <%= ENV['DB_USER'] || 'set_env_vars' %>
 
 # Warning: The database defined as "test" will be erased and

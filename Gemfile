@@ -14,6 +14,7 @@ end
 gem 'rails', "~> 6.1"
 
 gem 'devise', '~> 4.8'
+gem 'execjs'
 
 # adds authentication token features to devise;
 # can auth actions with a token instead of interactive
@@ -49,6 +50,7 @@ gem 'uglifier', '>= 1.3.0'
 
 # 0.4.0 seems to have problems building on Centos 7
 #gem 'mini_racer' #, '<= 0.3.9',  platforms: :ruby
+gem 'mini_racer',  '~> 0.8.0', platforms: :ruby
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'

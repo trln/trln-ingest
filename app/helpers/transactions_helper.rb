@@ -21,6 +21,8 @@ module TransactionsHelper
   def filename_for_download
     name = File.basename(params[:filename])
     name = name.gsub(/\.{2,}/, '--').gsub(/^\./, '')
+    name = "#{name}.#{params[:format]}" if params[:format]
+
     logger.info("Resolved #{params[:filename]} to #{name}")
     name
   end

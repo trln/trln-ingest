@@ -42,8 +42,9 @@ Rails.application.configure do
 
   config.after_initialize do
     ActiveRecord::Base.logger = Rails.logger.clone
-    ActiveRecord::Base.logger.level = Logger::INFO
+    ActiveRecord::Base.logger.level = Logger::DEBUG
   end
+  config.log_level = :debug
 
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
@@ -67,4 +68,14 @@ Rails.application.configure do
   unless File.directory?(config.stash_directory)
     $stderr.write("Transaction storage directory #{config.stash_directory} does not exist!\n")
   end
+
+  config.hosts = [
+    IPAddr.new("0.0.0.0/0"),
+    IPAddr.new("::/0"),
+    "localhost",
+    ".cloud.duke.edu",
+    ".library.duke.edu",
+    ".lib.duke.edu",
+    "ingest-app-dul-alma-sandbox.apps.dev.okd4.fitz.cloud.duke.edu"
+  ]
 end

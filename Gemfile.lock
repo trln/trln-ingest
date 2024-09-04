@@ -305,6 +305,7 @@ DEPENDENCIES
   bootstrap (~> 4)
   byebug
   devise (~> 4.8)
+  execjs
   hashids
   jbuilder (~> 2.5)
   jquery-rails

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Custom entrypoint to enable local development
 
@@ -9,8 +9,10 @@ rm -f /app/tmp/pids/server.pid
 if [ -e /run/secrets/trln-ingest-db-pw ]; then
     export DB_PASSWORD=$(cat /run/secrets/trln-ingest-db-pw)
 else
-    echo "Secret not available"
-    exit 1
+    if [ -z $DB_PASSWORD ]; then
+        echo "Secret not available"
+        exit 1
+    fi
 fi
 
 export OS_ENV=container
@@ -29,7 +31,7 @@ case $1 in
         bundle exec rails server -b 0.0.0.0
         ;;
     sidekiq)
-        exec bundle exec sidekiq
+        bundle exec sidekiq -d -L log/sidekiq.log 2> log/sidekiq.err
         ;;
     migrate)
         exec bundle exec rails db:migrate
