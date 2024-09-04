@@ -33,7 +33,7 @@ COPY . .
 RUN chmod -R a+rw /app
 RUN chown -R 1001:1001 /app
 
-COPY entrypoint /usr/local/bin/entrypoint
+COPY docker/entrypoint-duke /usr/local/bin/entrypoint
 
 RUN chmod a+x /usr/local/bin/entrypoint
 
