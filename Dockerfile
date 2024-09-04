@@ -1,48 +1,30 @@
-# Dockerfile
-# Build instructions for dul-argon-skin
-#
-# This serves as a "build" playbook of sorts
-FROM image-mirror-prod-registry.cloud.duke.edu/library/ruby:3.1
+ARG RUBY_VERSION=2.7-alpine
+FROM ruby:${RUBY_VERSION} AS base 
 
-# Become the root user
-USER 0
+# note here that if you don't use an alpine flavor this
+# package update will not work!
 
-# Add any system packages here.
-RUN apt-get update \
-	&& apt-get install -y --no-install-recommends \
-     git \
-     wait-for-it \
-     vim \
-     shared-mime-info \
-     rsync \
-     build-essential \
-     libyajl2 \
-     libyajl-dev \
-     sqlite3 \
-	&& rm -rf /var/lib/apt/lists/*
+RUN apk update && apk upgrade && apk add --no-cache build-base sqlite-dev libpq-dev libxml2-dev libxslt-dev yajl git nodejs bash sqlite
 
 
-WORKDIR app
-COPY Gemfile* ./
-# RUN gem install bundler
-RUN gem install bundler -v 2.4.22
-RUN bundle install
+COPY ./ /app/
 
-COPY . .
+WORKDIR /app
 
-RUN chmod -R a+rw /app
-RUN chown -R 1001:1001 /app
+FROM base AS builder
+
+RUN bundle config set path /gems && bundle install -j $(nproc)
+
+FROM base
+
+WORKDIR /app
+
+COPY --from=builder /gems /gems
+
+RUN bundle config set path /gems
 
 COPY entrypoint /usr/local/bin/entrypoint
-
-RUN chmod a+x /usr/local/bin/entrypoint
-
-EXPOSE 9292
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
 EXPOSE 3000
-EXPOSE 3001
+CMD ["server"]
 
-USER 1001
-
-# CMD ["start"]
-#ENTRYPOINT ["entrypoint"]
-#CMD ["bundle", "exec", "rails", "server", "-p", "3000", "-b", "0.0.0.0"]
