@@ -86,7 +86,7 @@ gem 'active_record_upsert', platform: :mri
 # :github specifier defaults to using git:// protocol, which generates
 # warnings. See comment at top of file.
 
-gem 'argot', github: 'trln/argot-ruby', tag: 'v1.0.7'
+gem 'argot', github: 'trln/argot-ruby', tag: 'v1.3.1'
 
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
