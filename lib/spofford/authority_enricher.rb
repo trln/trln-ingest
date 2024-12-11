@@ -52,7 +52,7 @@ module Spofford
 
     def variant_names_lookup(name_uri)
       variant_name = REDIS.get(
-        name_uri.sub('http://id.loc.gov/authorities/names/', 'lcnaf:')
+        name_uri.gsub(%r{https?://id.loc.gov/authorities/names/}, 'lcnaf:')
       )
 
       JSON.parse(variant_name) if variant_name

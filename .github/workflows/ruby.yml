@@ -54,7 +54,13 @@ jobs:
         run: |
           sudo apt-get -yqq install libpq-dev
           yes | gem update --system --force
-                  
+
+      - name: Update Rubygems
+        run: gem update --system 3.3.22
+
+      - name: Install Bundler
+        run: gem install bundler
+
       - name: Install dependencies
         run: |
           bundler install
